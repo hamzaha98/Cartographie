@@ -1,13 +1,18 @@
 const express = require('express');
 const mysql = require('mysql2');
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
+// Servir les fichiers statiques (logos)
+app.use('/logos', express.static('public/logos'));
 
 // Configuration de la connexion à la base de données
 const pool = mysql.createPool({
   host: 'localhost',      
-  user: 'root',           
+  user: 'root',          
   password: 'Raja1998.', 
   database: 'StageDb'
 }).promise();  
@@ -41,17 +46,26 @@ app.get('/entreprises/:id', async (req, res) => {
 // Route pour ajouter une nouvelle entreprise
 app.post('/entreprises', async (req, res) => {
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
-  
+
   if (!nom) {
     return res.status(400).json({ error: "Veuillez fournir un nom pour l'entreprise." });
   }
-  
+
   try {
     const [result] = await pool.query(
       'INSERT INTO entreprises (nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu]
     );
-    res.status(201).json({ id: result.insertId, nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu });
+    res.status(201).json({ 
+      id: result.insertId, 
+      nom, 
+      logo: `/logos/${logo}`, // Ajout du chemin correct pour le logo
+      descriptif, 
+      lien_du_site, 
+      categorie, 
+      mots_cles, 
+      lieu 
+    });
   } catch (error) {
     console.error('Erreur SQL:', error);
     res.status(500).json({ error: "Erreur lors de l'ajout de l'entreprise." });
