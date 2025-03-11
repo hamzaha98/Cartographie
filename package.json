@@ -3,5 +3,24 @@
     "express": "^4.21.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.12.0"
-  }
+  },
+  "name": "cartographie",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamzaha98/Cartographie.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hamzaha98/Cartographie/issues"
+  },
+  "homepage": "https://github.com/hamzaha98/Cartographie#readme",
+  "description": ""
 }
