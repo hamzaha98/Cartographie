@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cartographie de l'écosystème éducatif</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">🎓 Créativité Québec</a>
+            <form class="d-flex ms-auto">
+                <input class="form-control me-2" type="search" id="searchInput" placeholder="🔍 Rechercher une organisation...">
+                <button class="btn btn-primary" id="searchButton" type="button">Rechercher</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <h5 class="fw-bold">Catégories</h5>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Balados</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Évènements</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Compétitions et Concours</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Technologies Éducatives (EDTECH)</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de Formation</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Fédérations</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de soutien</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Soutien à l'élève</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Développement Durable</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Fondations</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Robotique</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Incubation Entrepreneuriale</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Nouvelles - Éditoriaux</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Financement Participatif</button>
+                </div>
+            </div>
+            
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="card p-3">
+                    <h5 id="categoryTitle" class="fw-bold text-primary"><i class="bi bi-mic-fill"></i> BALADOS</h5>
+                    <div class="row" id="resultsContainer">
+                        <!-- Les résultats seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-danger text-white text-center p-3 mt-4">
+        <span>📌 Version 1.3</span>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
