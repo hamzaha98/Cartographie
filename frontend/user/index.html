@@ -2,217 +2,73 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartographie de l'écosystème d'éducation du Québec</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cartographie de l'écosystème éducatif</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">Logo</div>
-            <div class="title">Cartographie de l'écosystème d'éducation du Québec</div>
-            <div class="search-container">
-                <input type="text" class="search-box" placeholder="Recherche">
-            </div>
-        </header>
-        
-        <div class="main-content">
-            <div class="sidebar">
-                <button class="mobile-filter-toggle">Filtres et Catégories ▼</button>
-                <div class="sidebar-content">
-                    <h3>Catégories</h3>
-                    <button class="category-btn">Balados</button>
-                    <button class="category-btn">Évènements</button>
-                    <button class="category-btn">Compétitions/Concours</button>
-                    <button class="category-btn">Organismes de formation</button>
-                    <button class="category-btn">Organismes de soutien</button>
-                    <button class="category-btn">Technologies éducatives</button>
-                    <button class="category-btn">Développement durable</button>
-                    <button class="category-btn">Incubation entrepreneuriale</button>
-                    <button class="category-btn">Fédérations</button>
-                    <button class="category-btn">Soutien à l'élève</button>
-                    <button class="category-btn">Fondations</button>
-                    <button class="category-btn">Robotique</button>
-                    <button class="category-btn">C. de recherche et d'innovation</button>
-                    <button class="category-btn">Nouvelles - Information</button>
-                    <button class="category-btn">Financement participatif</button>
-                    
-                    <div class="filter-section">
-                        <h3>Filtres</h3>
-                        <input type="text" class="filter-input" placeholder="Lieu">
-                        <input type="text" class="filter-input" placeholder="Mots-clés">
-                        <button class="filter-btn apply-btn">Appliquer les filtres</button>
-                        <button class="filter-btn reset-btn">Réinitialiser</button>
-                    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">🎓 Créativité Québec</a>
+            <form class="d-flex ms-auto">
+                <input class="form-control me-2" type="search" id="searchInput" placeholder="🔍 Rechercher une organisation...">
+                <button class="btn btn-primary" id="searchButton" type="button">Rechercher</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <h5 class="fw-bold">Catégories</h5>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Balados</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Évènements</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Compétitions et Concours</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Technologies Éducatives (EDTECH)</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de Formation</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Fédérations</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de soutien</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Soutien à l'élève</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Développement Durable</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Fondations</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Robotique</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Incubation Entrepreneuriale</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Nouvelles - Éditoriaux</button>
+                    <button class="btn btn-primary w-100 mb-2 category-btn">Financement Participatif</button>
                 </div>
             </div>
             
-            <div class="content-area">
-                <div class="view-toggle">
-                    <button class="view-btn active">Grille</button>
-                    <button class="view-btn inactive">Liste</button>
-                    <button class="view-btn inactive">Carte</button>
-                </div>
-                
-                <!-- TECH ED -->
-                <div class="category-panel">
-                    <div class="category-title">TECHNOLOGIES EDUCATIVES (EDTECH)</div>
-                    <div class="category-grid">
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #3498db;"></div>
-                            <div class="org-name">École branchée</div>
-                            <div class="org-tooltip">
-                                <p>Ressources et formation pour enseignants</p>
-                                <a href="https://ecolebranchee.com" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #e74c3c;"></div>
-                            <div class="org-name">Éductive</div>
-                            <div class="org-tooltip">
-                                <p>Ressources pédagogiques numériques</p>
-                                <a href="https://eductive.ca" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #2ecc71;"></div>
-                            <div class="org-name">La geek de service</div>
-                            <div class="org-tooltip">
-                                <p>Ressources technopédagogiques</p>
-                                <a href="https://lageekdeservice.com" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #f1c40f;"></div>
-                            <div class="org-name">Intention numérique</div>
-                            <div class="org-tooltip">
-                                <p>Solutions numériques éducatives</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #9b59b6;"></div>
-                            <div class="org-name">Les ingénieux pédagogiques</div>
-                            <div class="org-tooltip">
-                                <p>Innovations pédagogiques numériques</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #34495e;"></div>
-                            <div class="org-name">Mon #DPcontinu</div>
-                            <div class="org-tooltip">
-                                <p>Développement professionnel continu</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="card p-3">
+                    <h5 id="categoryTitle" class="fw-bold text-primary"><i class="bi bi-mic-fill"></i> BALADOS</h5>
+                    <div class="row" id="resultsContainer">
+                        <!-- Les résultats seront affichés ici -->
                     </div>
-                </div>
-                
-                <!-- BALADOS -->
-                <div class="category-panel">
-                    <div class="category-title">BALADOS</div>
-                    <div class="category-grid">
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #e67e22;"></div>
-                            <div class="org-name">Le cancre pédagogue</div>
-                            <div class="org-tooltip">
-                                <p>Podcast sur l'éducation</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #16a085;"></div>
-                            <div class="org-name">Pensons l'éducation</div>
-                            <div class="org-tooltip">
-                                <p>Réflexions sur le système éducatif</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #8e44ad;"></div>
-                            <div class="org-name">L'intention pédagogique</div>
-                            <div class="org-tooltip">
-                                <p>Podcast sur les approches pédagogiques</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #2c3e50;"></div>
-                            <div class="org-name">Inspire leadership podcast</div>
-                            <div class="org-tooltip">
-                                <p>Leadership en éducation</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #d35400;"></div>
-                            <div class="org-name">Balados Éductive</div>
-                            <div class="org-tooltip">
-                                <p>Podcast sur les technologies éducatives</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #7f8c8d;"></div>
-                            <div class="org-name">Tous les profs en parlent</div>
-                            <div class="org-tooltip">
-                                <p>Discussions entre enseignants</p>
-                                <a href="#" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ORGANISMES DE FORMATION -->
-                <div class="category-panel">
-                    <div class="category-title">ORGANISMES DE FORMATION</div>
-                    <div class="category-grid">
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #27ae60;"></div>
-                            <div class="org-name">Cadre21</div>
-                            <div class="org-tooltip">
-                                <p>Organisme de formation professionnelle</p>
-                                <a href="https://cadre21.org" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #2980b9;"></div>
-                            <div class="org-name">École Branchée</div>
-                            <div class="org-tooltip">
-                                <p>Ressources et formation pour enseignants</p>
-                                <a href="https://ecolebranchee.com" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                        <div class="org-item">
-                            <div class="org-logo" style="background-color: #c0392b;"></div>
-                            <div class="org-name">AQUOPS</div>
-                            <div class="org-tooltip">
-                                <p>Association Québécoise des Utilisateurs de l'Ordinateur au Primaire-Secondaire</p>
-                                <a href="https://www.aquops.qc.ca" target="_blank">Site web →</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="pagination">
-                    <div class="pagination-container">1 2 3 &gt;</div>
                 </div>
             </div>
         </div>
-        
-        <footer>
-            <div class="version-info">
-                <div>Version 1.3</div>
-            </div>
-        </footer>
     </div>
-    
+
+    <!-- Footer -->
+    <footer class="bg-danger text-white text-center p-3 mt-4">
+        <span>📌 Version 1.3</span>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
+
 </body>
 </html>

@@ -3,115 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter une entreprise</title>
+    <title>Interface Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
     <div class="container mt-5">
         <div class="card shadow-sm p-4">
-            <h2 class="mb-4 text-center">Ajouter une entreprise</h2>
+            <h2 class="mb-4 text-center">Gestion des Entreprises</h2>
 
-            <div id="message" class="alert d-none"></div>
-
+            <!-- Formulaire d'ajout -->
             <form id="entrepriseForm">
-                <div class="mb-3">
-                    <label for="nom" class="form-label">Nom de l'entreprise:</label>
-                    <input type="text" class="form-control" id="nom" required>
+                <h4>Ajouter une entreprise</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="nom" class="form-label">Nom:</label>
+                        <input type="text" class="form-control" id="nom" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="logo" class="form-label">Logo (URL):</label>
+                        <input type="text" class="form-control" id="logo">
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="logo" class="form-label">Logo (URL):</label>
-                    <input type="text" class="form-control" id="logo">
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label for="descriptif" class="form-label">Descriptif:</label>
+                        <textarea class="form-control" id="descriptif" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="lien_du_site" class="form-label">Site Web:</label>
+                        <input type="url" class="form-control" id="lien_du_site">
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="descriptif" class="form-label">Descriptif:</label>
-                    <textarea class="form-control" id="descriptif" rows="3"></textarea>
+                <div class="row mt-3">
+                    <div class="col-md-6"> 
+                        <label for="categorie" class="form-label">Catégorie:</label>
+                        <select id="categorie" class="form-select" required>
+                            <option value="">Sélectionner</option>
+                            <option value="Balados">Balados</option>
+                            <option value="Évènements">Évènements</option>
+                            <option value="CompétitionsConcours">Compétitions et Concours</option>
+                            <option value="EDTECH">Technologies Éducatives (EDTECH)</option>
+                            <option value="OrganismesFormation">Organismes de Formation</option>
+                            <option value="Fédérations">Fédérations</option>
+                            <option value="Organismessoutien">Organismes de soutien</option>
+                            <option value="Soutienélève">Soutien à l'élève</option>
+                            <option value="DéveloppementDurable">Développement Durable</option>
+                            <option value="Robotique">Robotique</option>
+                            <option value="IncubationEntrepreneuriale">Incubation Entrepreneuriale</option>
+                            <option value="NouvellesÉditoriaux">Nouvelles - Éditoriaux</option>
+                            <option value="FinancementParticipatif">Financement Participatif</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="mots_cles" class="form-label">Mots-clés:</label>
+                        <input type="text" class="form-control" id="mots_cles">
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="lien_du_site" class="form-label">Site Web:</label>
-                    <input type="url" class="form-control" id="lien_du_site">
-                </div>
-
-                <div class="mb-3">
-                    <label for="categorie" class="form-label">Catégorie:</label>
-                    <select id="categorie" class="form-select" required>
-                        <option value="">Sélectionner une catégorie</option>
-                        <option value="Balados">Balados</option>
-                        <option value="Événements">Événements</option>
-                        <option value="Compétitions/Concours">Compétitions/Concours</option>
-                        <option value="Technologies Éducatives (EdTech)">Technologies Éducatives (EdTech)</option>
-                        <option value="Organismes de Formation">Organismes de Formation</option>
-                        <option value="Organismes de Soutien">Organismes de Soutien</option>
-                        <option value="Développement Durable">Développement Durable</option>
-                        <option value="Fondations">Fondations</option>
-                        <option value="Robotique">Robotique</option>
-                        <option value="Incubation Entrepreneuriale">Incubation Entrepreneuriale</option>
-                        <option value="Nouvelles - Information">Nouvelles - Information</option>
-                        <option value="Financement Participatif">Financement Participatif</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label for="mots_cles" class="form-label">Mots-clés:</label>
-                    <input type="text" class="form-control" id="mots_cles">
-                </div>
-
-                <div class="mb-3">
+                <div class="mt-3">
                     <label for="lieu" class="form-label">Lieu:</label>
                     <input type="text" class="form-control" id="lieu">
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Ajouter l'entreprise</button>
+                <button type="submit" class="btn btn-primary mt-3 w-100">Ajouter l'entreprise</button>
             </form>
+
+            <div id="message" class="alert d-none mt-3"></div>
+        </div>
+
+        <!-- 📌 Tableau de gestion -->
+        <div class="card mt-4 p-4">
+            <h4>Liste des entreprises</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Logo</th>
+                        <th>Catégorie</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="entreprisesTable"></tbody>
+            </table>
         </div>
     </div>
 
-    <script>
-        document.getElementById("entrepriseForm").addEventListener("submit", async function(event) {
-            event.preventDefault();
-
-            const entreprise = {
-                nom: document.getElementById("nom").value,
-                logo: document.getElementById("logo").value,
-                descriptif: document.getElementById("descriptif").value,
-                lien_du_site: document.getElementById("lien_du_site").value,
-                categorie: document.getElementById("categorie").value,
-                mots_cles: document.getElementById("mots_cles").value,
-                lieu: document.getElementById("lieu").value
-            };
-
-            const messageBox = document.getElementById("message");
-
-            try {
-                const response = await fetch("http://localhost:3000/entreprises", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(entreprise)
-                });
-
-                const data = await response.json();
-                
-                if (response.ok) {
-                    messageBox.className = "alert alert-success";
-                    messageBox.textContent = "Entreprise ajoutée avec succès!";
-                    messageBox.classList.remove("d-none");
-                    document.getElementById("entrepriseForm").reset();
-                } else {
-                    messageBox.className = "alert alert-danger";
-                    messageBox.textContent = "Erreur: " + (data.error || "Impossible d'ajouter l'entreprise.");
-                    messageBox.classList.remove("d-none");
-                }
-            } catch (error) {
-                messageBox.className = "alert alert-danger";
-                messageBox.textContent = "Erreur de connexion au serveur.";
-                messageBox.classList.remove("d-none");
-            }
-        });
-    </script>
-
+    <script src="admin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
