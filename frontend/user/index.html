@@ -31,28 +31,30 @@
             <div class="col-md-3">
                 <div class="card p-3">
                     <h5 class="fw-bold">Catégories</h5>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Balados</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Évènements</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Compétitions et Concours</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Technologies Éducatives (EDTECH)</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de Formation</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Fédérations</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Organismes de soutien</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Soutien à l'élève</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Développement Durable</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Fondations</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Robotique</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Incubation Entrepreneuriale</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Nouvelles - Éditoriaux</button>
-                    <button class="btn btn-primary w-100 mb-2 category-btn">Financement Participatif</button>
+                    <select id="categorySelect" class="form-select">
+                        <option value="Toutes">Sélectionner</option>
+                        <option value="Balados">Balados</option>
+                        <option value="Évènements">Évènements</option>
+                        <option value="Compétitions et Concours">Compétitions et Concours</option>
+                        <option value="Technologies Éducatives (EDTECH)">Technologies Éducatives (EDTECH)</option>
+                        <option value="Organismes de Formation">Organismes de Formation</option>
+                        <option value="Fédérations">Fédérations</option>
+                        <option value="Organismes de soutien">Organismes de soutien</option>
+                        <option value="Soutien à l'élève">Soutien à l'élève</option>
+                        <option value="Développement Durable">Développement Durable</option>
+                        <option value="Fondations">Fondations</option>
+                        <option value="Robotique">Robotique</option>
+                        <option value="Incubation Entrepreneuriale">Incubation Entrepreneuriale</option>
+                        <option value="Nouvelles - Éditoriaux">Nouvelles - Éditoriaux</option>
+                        <option value="Financement Participatif">Financement Participatif</option>
+                    </select>
                 </div>
             </div>
-            
 
             <!-- Main Content -->
             <div class="col-md-9">
                 <div class="card p-3">
-                    <h5 id="categoryTitle" class="fw-bold text-primary"><i class="bi bi-mic-fill"></i> BALADOS</h5>
+                    <h5 id="categoryTitle" class="fw-bold text-primary">BALADOS</h5>
                     <div class="row" id="resultsContainer">
                         <!-- Les résultats seront affichés ici -->
                     </div>

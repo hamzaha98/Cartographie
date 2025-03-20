@@ -1,33 +1,12 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    const categories = document.querySelectorAll('.category-btn'); 
+    const categorySelect = document.getElementById('categorySelect'); // Sélection du menu déroulant
     const resultsContainer = document.getElementById('resultsContainer');
-    const categoryTitle = document.getElementById('categoryTitle'); // Sélection du titre de la catégorie
+    const categoryTitle = document.getElementById('categoryTitle');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
 
-    let entreprises = await fetchEntreprises(); // Récupération des entreprises au chargement
-    let currentCategory = "Toutes"; // Par défaut, afficher toutes les entreprises
-
-    // 📌 Fonction pour filtrer les entreprises par catégorie et mettre à jour le titre
-    function filtrerParCategorie(categorie) {
-        categoryTitle.textContent = categorie.toUpperCase(); // Mise à jour du titre de la catégorie
-        currentCategory = categorie; // Stocke la catégorie actuelle
-
-        if (categorie === "Toutes") {
-            afficherEntreprises(entreprises);
-        } else {
-            const filtered = entreprises.filter(e => e.categorie.toLowerCase() === categorie.toLowerCase());
-            afficherEntreprises(filtered);
-        }
-    }
-
-    // 📌 Ajout d'un écouteur d'événements sur chaque bouton de catégorie
-    categories.forEach(button => {
-        button.addEventListener('click', function () {
-            const selectedCategory = this.textContent.trim();
-            filtrerParCategorie(selectedCategory);
-        });
-    });
+    let entreprises = await fetchEntreprises(); // Récupération des entreprises
+    let currentCategory = "Toutes"; // Par défaut, afficher tout
 
     // 📌 Fonction pour récupérer les entreprises depuis l'API
     async function fetchEntreprises() {
@@ -40,6 +19,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error("❌ Erreur lors de la récupération des entreprises :", error);
             return [];
         }
+    }
+
+    // 📌 Fonction pour filtrer les entreprises par catégorie et mettre à jour le titre
+    function filtrerParCategorie(categorie) {
+        categoryTitle.textContent = categorie === "Toutes" ? "Toutes les organisations" : categorie.toUpperCase();
+        currentCategory = categorie; 
+
+        let filteredData = entreprises;
+
+        if (categorie !== "Toutes") {
+            filteredData = entreprises.filter(e => e.categorie.toLowerCase() === categorie.toLowerCase());
+        }
+
+        afficherEntreprises(filteredData);
     }
 
     // 📌 Fonction pour afficher les entreprises
@@ -60,32 +53,42 @@ document.addEventListener('DOMContentLoaded', async function () {
                     </div>
                 </div>
             `).join('')
-            : '<p class="text-center text-danger">Aucune entreprise trouvée.</p>';
+            : '<p class="text-center text-danger">Aucune organisation trouvée.</p>';
     }
 
     // 📌 Fonction pour la recherche
     async function rechercherEntreprises() {
         const searchTerm = searchInput.value.trim().toLowerCase();
+        let filteredResults = entreprises;
 
-        if (!searchTerm) {
-            console.log("🔄 Affichage de toutes les entreprises");
-            filtrerParCategorie(currentCategory); // Réafficher la catégorie actuelle
-            return;
+        if (searchTerm) {
+            try {
+                console.log(`🔍 Recherche pour : ${searchTerm}`);
+                const response = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(searchTerm)}`);
+                filteredResults = await response.json();
+                console.log("🔎 Résultats trouvés :", filteredResults.length);
+            } catch (error) {
+                console.error("❌ Erreur lors de la recherche :", error);
+            }
         }
 
-        try {
-            console.log(`🔍 Recherche pour : ${searchTerm}`);
-            const response = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(searchTerm)}`);
-            const filteredResults = await response.json();
-            console.log("🔎 Résultats trouvés :", filteredResults.length);
-
-            afficherEntreprises(filteredResults);
-        } catch (error) {
-            console.error("❌ Erreur lors de la recherche :", error);
+        // Appliquer le filtre de catégorie en plus de la recherche
+        if (currentCategory !== "Toutes") {
+            filteredResults = filteredResults.filter(e => e.categorie.toLowerCase() === currentCategory.toLowerCase());
         }
+
+        afficherEntreprises(filteredResults);
     }
+
+    // 📌 Gestion du changement de sélection dans la liste déroulante
+    categorySelect.addEventListener('change', function () {
+        filtrerParCategorie(this.value);
+    });
 
     // 📌 Écoute des événements pour la recherche
     searchButton.addEventListener('click', rechercherEntreprises);
     searchInput.addEventListener('keyup', rechercherEntreprises); // Recherche en temps réel
+
+    // 📌 Affichage initial de toutes les entreprises
+    filtrerParCategorie(currentCategory);
 });
