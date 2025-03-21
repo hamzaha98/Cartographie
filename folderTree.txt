@@ -1,0 +1,66 @@
+.:
+total 168
+drwxr-xr-x@  16 cyril  staff    512 21 mar 12:49 .
+drwxr-xr-x@  10 cyril  staff    320  3 mar 10:53 ..
+-rw-r--r--@   1 cyril  staff   6148 21 mar 12:25 .DS_Store
+-rw-r--r--@   1 cyril  staff    387 21 mar 12:38 .env
+-rw-r--r--    1 cyril  staff    322 21 mar 11:19 .env.example
+drwxr-xr-x@  15 cyril  staff    480 21 mar 10:59 .git
+-rw-r--r--@   1 cyril  staff    361 21 mar 11:19 .gitignore
+drwxr-xr-x@   3 cyril  staff     96 21 mar 10:55 .vscode
+-rw-r--r--@   1 cyril  staff   3550 21 mar 12:49 README.md
+drwxr-xr-x@   5 cyril  staff    160 21 mar 12:18 backend
+drwxr-xr-x@   7 cyril  staff    224 21 mar 12:52 docs
+-rw-r--r--@   1 cyril  staff      3 21 mar 13:12 folderTree.txt
+drwxr-xr-x@   5 cyril  staff    160 21 mar 10:56 frontend
+drwxr-xr-x  120 cyril  staff   3840 21 mar 12:12 node_modules
+-rw-r--r--@   1 cyril  staff  50345 21 mar 12:12 package-lock.json
+-rw-r--r--@   1 cyril  staff    785 21 mar 12:20 package.json
+
+./.vscode:
+total 8
+drwxr-xr-x@  3 cyril  staff   96 21 mar 10:55 .
+drwxr-xr-x@ 16 cyril  staff  512 21 mar 12:49 ..
+-rw-r--r--@  1 cyril  staff   40 21 mar 10:55 settings.json
+
+./backend:
+total 32
+drwxr-xr-x@  5 cyril  staff   160 21 mar 12:18 .
+drwxr-xr-x@ 16 cyril  staff   512 21 mar 12:49 ..
+-rw-r--r--@  1 cyril  staff  2382 21 mar 12:16 init-db.js
+-rw-r--r--@  1 cyril  staff  5284 21 mar 12:21 server.js
+-rw-r--r--@  1 cyril  staff  1917 21 mar 12:18 test-mysql.js
+
+./docs:
+total 64
+drwxr-xr-x@  7 cyril  staff   224 21 mar 12:52 .
+drwxr-xr-x@ 16 cyril  staff   512 21 mar 12:49 ..
+-rw-r--r--@  1 cyril  staff  6152 21 mar 12:51 installation-mysql-linux.md
+-rw-r--r--@  1 cyril  staff  3529 21 mar 12:50 installation-mysql-macos.md
+-rw-r--r--@  1 cyril  staff  4873 21 mar 12:51 installation-mysql-windows.md
+-rw-r--r--@  1 cyril  staff  1125 21 mar 12:52 installation-mysql.md
+-rw-r--r--@  1 cyril  staff  4372 21 mar 12:50 installation.md
+
+./frontend:
+total 16
+drwxr-xr-x@  5 cyril  staff   160 21 mar 10:56 .
+drwxr-xr-x@ 16 cyril  staff   512 21 mar 12:49 ..
+-rw-r--r--@  1 cyril  staff  6148 21 mar 10:56 .DS_Store
+drwxr-xr-x@  4 cyril  staff   128 21 mar 10:55 admin
+drwxr-xr-x@  5 cyril  staff   160 21 mar 10:55 user
+
+./frontend/admin:
+total 32
+drwxr-xr-x@ 4 cyril  staff   128 21 mar 10:55 .
+drwxr-xr-x@ 5 cyril  staff   160 21 mar 10:56 ..
+-rw-r--r--@ 1 cyril  staff  6314 21 mar 10:55 admin.js
+-rw-r--r--@ 1 cyril  staff  4560 21 mar 10:55 index.html
+
+./frontend/user:
+total 32
+drwxr-xr-x@ 5 cyril  staff   160 21 mar 10:55 .
+drwxr-xr-x@ 5 cyril  staff   160 21 mar 10:56 ..
+-rw-r--r--@ 1 cyril  staff  3381 21 mar 10:55 index.html
+-rw-r--r--@ 1 cyril  staff  4320 21 mar 10:55 script.js
+-rw-r--r--@ 1 cyril  staff   505 21 mar 10:55 styles.css
+
