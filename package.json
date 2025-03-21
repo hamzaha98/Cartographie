@@ -1,8 +1,31 @@
 {
+  "name": "cartographie-ecosysteme-educatif",
+  "version": "1.0.0",
+  "description": "Application web pour cartographier les organisations de l'écosystème éducatif québécois",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "init-db": "node backend/init-db.js",
+    "setup": "npm run init-db && npm run start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "education",
+    "quebec",
+    "cartographie",
+    "ecosysteme"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.21.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
