@@ -1,21 +1,26 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const path = require('path');
+const { initializeDatabase } = require('./init-db');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
 // 📌 Servir les fichiers statiques (logos)
-app.use('/logos', express.static('public/logos'));
+app.use(express.static(path.join(__dirname, '../')));  // Accès à la racine du projet
+app.use('/logos', express.static(path.join(__dirname, '../public/logos')));
 
 // 📌 Configuration de la connexion à la base de données
 const pool = mysql.createPool({
-  host: 'localhost',      
-  user: 'root',          
-  password: 'Raja1998.',  // Remplace par ton vrai mot de passe MySQL
-  database: 'StageDb'
-}).promise();  
+  host: process.env.DB_HOST,      
+  user: process.env.DB_USER,          
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306
+}).promise();
 
 // 📌 Route pour récupérer toutes les entreprises
 app.get('/entreprises', async (req, res) => {
@@ -140,9 +145,21 @@ app.put('/entreprises/:id', async (req, res) => {
   }
 });
 
+// Initialiser la base de données puis démarrer le serveur
+async function startServer() {
+  try {
+    // Initialiser la base de données
+    await initializeDatabase();
+    
+    // 📌 Démarrage du serveur sur le port 3000
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Serveur Interface publique sur http://localhost:${PORT}/frontend/user/index.html`);
+      console.log(`🚀 Serveur Interface administration sur http://localhost:${PORT}/frontend/admin/index.html`);
+    });
+  } catch (error) {
+    console.error('❌ Erreur au démarrage du serveur:', error);
+  }
+}
 
-// 📌 Démarrage du serveur sur le port 3000
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur API démarré sur http://localhost:${PORT}`);
-});
+startServer();
