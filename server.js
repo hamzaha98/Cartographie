@@ -6,6 +6,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// 📌 Route de base pour afficher un message
+app.get('/', (req, res) => {
+  res.send('Bienvenue sur l\'API des entreprises !');
+});
+
 // 📌 Servir les fichiers statiques (logos)
 app.use('/logos', express.static('public/logos'));
 
@@ -13,7 +18,7 @@ app.use('/logos', express.static('public/logos'));
 const pool = mysql.createPool({
   host: 'localhost',      
   user: 'root',          
-  password: 'Raja1998.',  // Remplace par ton vrai mot de passe MySQL
+  password: 'Consult$1247.',  // Remplace par ton vrai mot de passe MySQL
   database: 'StageDb'
 }).promise();  
 
