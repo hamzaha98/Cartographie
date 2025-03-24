@@ -9,9 +9,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 📌 Servir les fichiers statiques (logos)
-app.use(express.static(path.join(__dirname, '../')));  // Accès à la racine du projet
-app.use('/logos', express.static(path.join(__dirname, '../public/logos')));
+// ✅ Correction : Servir les logos depuis /logos (à la racine du projet)
+app.use('/logos', express.static(path.join(__dirname, '../logos')));
 
 // 📌 Configuration de la connexion à la base de données
 const pool = mysql.createPool({
@@ -86,7 +85,7 @@ app.post('/entreprises', async (req, res) => {
     res.status(201).json({ 
       id: result.insertId, 
       nom, 
-      logo: `/logos/${logo}`, 
+      logo: `/logos/${categorie}/${logo}`, 
       descriptif, 
       lien_du_site, 
       categorie, 
@@ -145,17 +144,15 @@ app.put('/entreprises/:id', async (req, res) => {
   }
 });
 
-// Initialiser la base de données puis démarrer le serveur
+// 📌 Démarrer le serveur
 async function startServer() {
   try {
-    // Initialiser la base de données
     await initializeDatabase();
-    
-    // 📌 Démarrage du serveur sur le port 3000
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`🚀 Serveur Interface publique sur http://localhost:${PORT}/frontend/user/index.html`);
-      console.log(`🚀 Serveur Interface administration sur http://localhost:${PORT}/frontend/admin/index.html`);
+      console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
+      console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
     });
   } catch (error) {
     console.error('❌ Erreur au démarrage du serveur:', error);
