@@ -10,22 +10,45 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch("http://localhost:3000/entreprises");
             const entreprises = await response.json();
-
-            entreprisesTable.innerHTML = entreprises.map(entreprise => `
-                <tr>
-                    <td>${entreprise.nom}</td>
-                    <td><img src="${entreprise.logo}" width="50" height="50" alt="Logo"></td>
-                    <td>${entreprise.categorie}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editEntreprise(${entreprise.id})">Modifier</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteEntreprise(${entreprise.id})">Supprimer</button>
-                    </td>
-                </tr>
-            `).join('');
+    
+            entreprisesTable.innerHTML = entreprises.map(entreprise => {
+                // Construction dynamique du chemin du logo
+                const logoPath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
+    
+                return `
+                    <tr>
+                        <td>${entreprise.nom}</td>
+                        <td>
+                            <div style="
+                                width: 60px;
+                                height: 60px;
+                                border: 1px solid #ccc;
+                                background-color: #fff;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                                <img src="${logoPath}"
+                                     alt="Logo"
+                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                     onerror="this.src='https://via.placeholder.com/60';">
+                            </div>
+                        </td>
+                        <td>${entreprise.categorie}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editEntreprise(${entreprise.id})">Modifier</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteEntreprise(${entreprise.id})">Supprimer</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         } catch (error) {
             console.error("❌ Erreur lors du chargement des entreprises:", error);
         }
     }
+    
+    
 
     // 🔄 Ajouter ou Modifier une entreprise
     entrepriseForm.addEventListener("submit", async function (event) {
