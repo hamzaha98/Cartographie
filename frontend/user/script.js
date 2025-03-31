@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    const categorySelect = document.getElementById('categorySelect'); // Sélection du menu déroulant
+    const categorySelect = document.getElementById('categorySelect'); // Menu déroulant
     const resultsContainer = document.getElementById('resultsContainer');
     const categoryTitle = document.getElementById('categoryTitle');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
 
-    let entreprises = await fetchEntreprises(); // Récupération des entreprises
-    let currentCategory = "Toutes"; // Par défaut, afficher tout
+    let entreprises = await fetchEntreprises(); // Chargement initial
+    let currentCategory = "Toutes";
 
     // 📌 Fonction pour récupérer les entreprises depuis l'API
     async function fetchEntreprises() {
@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    // 📌 Fonction pour filtrer les entreprises par catégorie et mettre à jour le titre
+    // 📌 Fonction pour filtrer les entreprises selon la catégorie
     function filtrerParCategorie(categorie) {
         categoryTitle.textContent = categorie === "Toutes" ? "Toutes les organisations" : categorie.toUpperCase();
-        currentCategory = categorie; 
+        currentCategory = categorie;
 
         let filteredData = entreprises;
 
@@ -35,28 +35,36 @@ document.addEventListener('DOMContentLoaded', async function () {
         afficherEntreprises(filteredData);
     }
 
-    // 📌 Fonction pour afficher les entreprises
+    // ✅ Fonction mise à jour pour afficher les entreprises avec les bons logos
     function afficherEntreprises(data) {
         resultsContainer.innerHTML = data.length
-            ? data.map(entreprise => `
-                <div class="col-md-4">
-                    <div class="card shadow-sm p-3 text-center">
-                        <img src="${entreprise.logo || 'https://via.placeholder.com/80'}" 
-                            onerror="this.src='https://via.placeholder.com/80';" 
-                            alt="${entreprise.nom}" class="img-fluid mx-auto d-block rounded-circle" 
-                            style="width: 80px; height: 80px; object-fit: contain;">
-                        <div class="fw-bold mt-2">${entreprise.nom}</div>
-                        <p class="text-muted">${entreprise.descriptif || ''}</p>
-                        <a href="${entreprise.lien_du_site}" target="_blank" class="d-block text-primary fw-bold mt-2">
-                            <i class="bi bi-link-45deg"></i> Écouter
-                        </a>
+            ? data.map(entreprise => {
+                const imagePath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
+                console.log("🔗 Image URL :", imagePath);
+    
+                return `
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm p-3 text-center h-100">
+                            <img src="${imagePath}" 
+                                 onerror="this.src='https://via.placeholder.com/80';" 
+                                 alt="${entreprise.nom}" 
+                                 class="img-fluid mx-auto d-block rounded-circle" 
+                                 style="width: 80px; height: 80px; object-fit: contain;">
+                            <div class="fw-bold mt-2">${entreprise.nom}</div>
+                            <p class="text-muted">${entreprise.descriptif || ''}</p>
+                            <a href="${entreprise.lien_du_site}" target="_blank" class="d-block text-primary fw-bold mt-2">
+                                <i class="bi bi-link-45deg"></i> Écouter
+                            </a>
+                        </div>
                     </div>
-                </div>
-            `).join('')
+                `;
+            }).join('')
             : '<p class="text-center text-danger">Aucune organisation trouvée.</p>';
     }
+    
+    
 
-    // 📌 Fonction pour la recherche
+    // 📌 Fonction pour la recherche avec filtre catégorie
     async function rechercherEntreprises() {
         const searchTerm = searchInput.value.trim().toLowerCase();
         let filteredResults = entreprises;
@@ -72,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         }
 
-        // Appliquer le filtre de catégorie en plus de la recherche
+        // Filtrage par catégorie actif
         if (currentCategory !== "Toutes") {
             filteredResults = filteredResults.filter(e => e.categorie.toLowerCase() === currentCategory.toLowerCase());
         }
@@ -80,15 +88,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         afficherEntreprises(filteredResults);
     }
 
-    // 📌 Gestion du changement de sélection dans la liste déroulante
+    // 📌 Événements
     categorySelect.addEventListener('change', function () {
         filtrerParCategorie(this.value);
     });
 
-    // 📌 Écoute des événements pour la recherche
     searchButton.addEventListener('click', rechercherEntreprises);
-    searchInput.addEventListener('keyup', rechercherEntreprises); // Recherche en temps réel
+    searchInput.addEventListener('keyup', rechercherEntreprises);
 
-    // 📌 Affichage initial de toutes les entreprises
+    // 📌 Chargement initial
     filtrerParCategorie(currentCategory);
 });
