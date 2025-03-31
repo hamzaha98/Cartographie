@@ -12,6 +12,9 @@ app.use(cors());
 // ✅ Correction : Servir les logos depuis /logos (à la racine du projet)
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
 
+// ✅ Correction : Servir les fichiers statiques HTML, CSS, JS depuis le dossier frontend
+app.use('/frontend', express.static(path.join(__dirname, '../frontend'))); 
+
 // 📌 Configuration de la connexion à la base de données
 const pool = mysql.createPool({
   host: process.env.DB_HOST,      
