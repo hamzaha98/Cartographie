@@ -1,5 +1,25 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
 body {
+    display: flex;
+    flex-direction: column;
     background-color: #f8f9fa;
+}
+
+main {
+    flex: 1;
+}
+
+:root {
+    --primary-color: #e74c3c;
+    --secondary-color: #3498db;
+    --success-color: #2ecc71;
+    --footer-color: #34495e;
+    --light-bg: #f5f5f5;
+    --border-color: #cccccc;
 }
 
 /* Organisation card */
@@ -30,4 +50,16 @@ body {
     font-weight: bold;
 }
 
+.view-toggle {
+    display: flex;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
 
+#miniMap {
+    height: 250px;
+    min-height: 250px;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 5px;
+}

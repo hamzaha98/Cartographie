@@ -1,38 +1,42 @@
+
+// 🛡️ Rediriger vers login si non connecté
+if (!localStorage.getItem("admin_token")) {
+    window.location.href = "/frontend/admin/login.html";
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const entrepriseForm = document.getElementById("entrepriseForm");
     const messageBox = document.getElementById("message");
     const entreprisesTable = document.getElementById("entreprisesTable");
     const submitBtn = document.getElementById("submitBtn");
-    let editingId = null;  // ID de l'entreprise en cours de modification
+    let editingId = null;
 
-    // 🔄 Charger les entreprises existantes
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("admin_token")
+    };
+    const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("admin_token");
+        window.location.href = "/frontend/admin/login.html";
+    });
+}
+
+
     async function loadEntreprises() {
         try {
             const response = await fetch("http://localhost:3000/entreprises");
             const entreprises = await response.json();
-    
+
             entreprisesTable.innerHTML = entreprises.map(entreprise => {
-                // Construction dynamique du chemin du logo
                 const logoPath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
-    
                 return `
                     <tr>
                         <td>${entreprise.nom}</td>
                         <td>
-                            <div style="
-                                width: 60px;
-                                height: 60px;
-                                border: 1px solid #ccc;
-                                background-color: #fff;
-                                border-radius: 6px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            ">
-                                <img src="${logoPath}"
-                                     alt="Logo"
-                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                                     onerror="this.src='https://via.placeholder.com/60';">
+                            <div style="width: 60px; height: 60px; border: 1px solid #ccc; background-color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <img src="${logoPath}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='/logos/default.png';">
                             </div>
                         </td>
                         <td>${entreprise.categorie}</td>
@@ -47,10 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("❌ Erreur lors du chargement des entreprises:", error);
         }
     }
-    
-    
 
-    // 🔄 Ajouter ou Modifier une entreprise
     entrepriseForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
@@ -67,19 +68,15 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             let response;
             if (editingId) {
-                // Modifier une entreprise existante
-                console.log(`📝 Modification en cours pour l'ID: ${editingId}`);
                 response = await fetch(`http://localhost:3000/entreprises/${editingId}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers,
                     body: JSON.stringify(entreprise)
                 });
             } else {
-                // Ajouter une nouvelle entreprise
-                console.log("➕ Ajout d'une nouvelle entreprise...");
                 response = await fetch("http://localhost:3000/entreprises", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers,
                     body: JSON.stringify(entreprise)
                 });
             }
@@ -90,12 +87,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 messageBox.className = "alert alert-success";
                 messageBox.textContent = editingId ? "Entreprise modifiée avec succès!" : "Entreprise ajoutée avec succès!";
                 messageBox.classList.remove("d-none");
-
                 entrepriseForm.reset();
-                editingId = null;  // Réinitialiser après modification
-                submitBtn.textContent = "Ajouter l'entreprise"; // Remettre le bouton à son état initial
-
-                loadEntreprises(); // Actualiser la liste
+                editingId = null;
+                submitBtn.textContent = "Ajouter l'entreprise";
+                loadEntreprises();
             } else {
                 messageBox.className = "alert alert-danger";
                 messageBox.textContent = `Erreur: ${data.error || "Impossible d'ajouter ou modifier l'entreprise."}`;
@@ -109,17 +104,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 🔄 Charger les données dans le formulaire pour modification
     window.editEntreprise = async function (id) {
-        console.log(`🔄 Chargement des données pour l'édition de l'entreprise ID: ${id}`);
         try {
             const response = await fetch(`http://localhost:3000/entreprises/${id}`);
             const entreprise = await response.json();
-
-            if (!response.ok) {
-                console.error("⚠️ Erreur de récupération:", entreprise.error);
-                return;
-            }
+            if (!response.ok) return;
 
             document.getElementById("nom").value = entreprise.nom;
             document.getElementById("logo").value = entreprise.logo;
@@ -129,23 +118,20 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("mots_cles").value = entreprise.mots_cles;
             document.getElementById("lieu").value = entreprise.lieu;
 
-            // 📝 Mettre à jour l'ID d'édition et le texte du bouton
             editingId = id;
             submitBtn.textContent = "Modifier l'entreprise";
-            console.log(`✔️ ID stocké pour modification: ${editingId}`);
-
         } catch (error) {
             console.error("❌ Erreur lors du chargement des données :", error);
         }
     };
 
-    // 🔄 Supprimer une entreprise
     window.deleteEntreprise = async function (id) {
         if (confirm("⚠️ Voulez-vous vraiment supprimer cette entreprise ?")) {
             try {
-                console.log(`🗑️ Suppression de l'entreprise ID: ${id}`);
-                const response = await fetch(`http://localhost:3000/entreprises/${id}`, { method: "DELETE" });
-
+                const response = await fetch(`http://localhost:3000/entreprises/${id}`, {
+                    method: "DELETE",
+                    headers
+                });
                 if (response.ok) {
                     loadEntreprises();
                 } else {
@@ -157,6 +143,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Charger les entreprises au démarrage
     loadEntreprises();
 });
