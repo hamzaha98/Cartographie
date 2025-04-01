@@ -30,31 +30,73 @@
             <!-- Sidebar -->
             <div class="col-md-3">
                 <div class="card p-3">
-                    <h5 class="fw-bold">Catégories</h5>
-                    <select id="categorySelect" class="form-select">
-                        <option value="Toutes">Sélectionner</option>
-                        <option value="Balados">Balados</option>
-                        <option value="Évènements">Évènements</option>
-                        <option value="Compétitions et Concours">Compétitions et Concours</option>
-                        <option value="Technologies Éducatives (EDTECH)">Technologies Éducatives (EDTECH)</option>
-                        <option value="Organismes de Formation">Organismes de Formation</option>
-                        <option value="Fédérations">Fédérations</option>
-                        <option value="Organismes de soutien">Organismes de soutien</option>
-                        <option value="Soutien à l'élève">Soutien à l'élève</option>
-                        <option value="Développement Durable">Développement Durable</option>
-                        <option value="Fondations">Fondations</option>
-                        <option value="Robotique">Robotique</option>
-                        <option value="Incubation Entrepreneuriale">Incubation Entrepreneuriale</option>
-                        <option value="Nouvelles - Éditoriaux">Nouvelles - Éditoriaux</option>
-                        <option value="Financement Participatif">Financement Participatif</option>
-                    </select>
+                    <!-- Catégories -->
+                    <div class="card p-3">
+                        <h5 class="fw-bold">Catégories</h5>
+                        <select id="categorySelect" class="form-select">
+                            <option value="Toutes">Sélectionner</option>
+                            <option value="Balados">Balados</option>
+                            <option value="Évènements">Évènements</option>
+                            <option value="Compétitions et Concours">Compétitions et Concours</option>
+                            <option value="Technologies Éducatives (EDTECH)">Technologies Éducatives (EDTECH)</option>
+                            <option value="Organismes de Formation">Organismes de Formation</option>
+                            <option value="Fédérations">Fédérations</option>
+                            <option value="Organismes de soutien">Organismes de soutien</option>
+                            <option value="Soutien à l'élève">Soutien à l'élève</option>
+                            <option value="Développement Durable">Développement Durable</option>
+                            <option value="Fondations">Fondations</option>
+                            <option value="Robotique">Robotique</option>
+                            <option value="Incubation Entrepreneuriale">Incubation Entrepreneuriale</option>
+                            <option value="Nouvelles - Éditoriaux">Nouvelles - Éditoriaux</option>
+                            <option value="Financement Participatif">Financement Participatif</option>
+                        </select>
+                    </div>
+                    <!-- public cible -->
+                    <div class="card p-3">
+                        <h5 class="fw-bold">Public cible</h5>
+                        <select id="publicCibleSelect" class="form-select">
+                            <option value="Toutes">Sélectionner</option>
+                            <option value="Élèves">Élèves</option>
+                            <option value="Enseignants">Enseignants</option>
+                            <option value="Parents">Parents</option>
+                            <option value="Administrateurs scolaires">Administrateurs scolaires</option>
+                            <option value="Professionnels de l’éducation">Professionnels de l’éducation</option>
+                            <option value="Grand public">Grand public</option>
+                        </select>
+                    </div>
+                    <!-- Format -->
+                    <div class="card p-3">
+                        <h5 class="fw-bold">Format</h5>
+                        <select id="formatSelect" class="form-select">
+                            <option value="Toutes">Sélectionner</option>
+                            <option value="Balado">Balado</option>
+                            <option value="Vidéo">Vidéo</option>
+                            <option value="Événement">Événement</option>
+                            <option value="Ressources numériques">Ressources numériques</option>
+                            <option value="Concours/Compétition">Concours/Compétition</option>
+                            <option value="Formation">Formation</option>
+                            <option value="Article/Éditorial">Article/Éditorial</option>
+                        </select>
+                    </div>
+                    <!-- Type d’acteur -->
+                    <div class="card p-3">
+                        <h5 class="fw-bold">Type d'acteur</h5>
+                        <select id="typeActeurSelect" class="form-select">
+                            <option value="Toutes">Sélectionner</option>
+                            <option value="Organisations éducatives">Organisations éducatives</option>
+                            <option value="Établissements scolaires">Établissements scolaires</option>
+                            <option value="Associations et fédérations">Associations et fédérations</option>
+                            <option value="Startups et incubateurs">Startups et incubateurs</option>
+                            <option value="Médias et plateformes">Médias et plateformes</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <!-- Main Content -->
             <div class="col-md-9">
                 <div class="card p-3">
-                    <h5 id="categoryTitle" class="fw-bold text-primary">BALADOS</h5>
+                    <h4 id="filterSubtitles" class="fw-bold text-primary">Tous les filtres sélectionnés</h4>
                     <div class="row" id="resultsContainer">
                         <!-- Les résultats seront affichés ici -->
                     </div>
