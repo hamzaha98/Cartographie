@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const categorySelect = document.getElementById('categorySelect'); // Menu déroulant
     const resultsContainer = document.getElementById('resultsContainer');
-    const categoryTitle = document.getElementById('categoryTitle');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
     const publicCibleSelect = document.getElementById('publicCibleSelect'); // Nouveau filtre Public cible
@@ -92,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     <div class="col-md-4 mb-4">
                         <div class="card shadow-sm p-3 text-center h-100">
                             <img src="${imagePath}" 
-                                 onerror="this.src='https://via.placeholder.com/80';" 
+                                 onerror="this.src='/logos/Technologies Éducatives (EDTECH)/TecE_creativiteQc.png';" 
                                  alt="${entreprise.nom}" 
                                  class="img-fluid mx-auto d-block rounded-circle" 
                                  style="width: 80px; height: 80px; object-fit: contain;">
@@ -108,6 +107,39 @@ document.addEventListener('DOMContentLoaded', async function () {
             : '<p class="text-center text-danger">Aucune organisation trouvée.</p>';
     }
     
+// 📌 Fonction pour la recherche avec filtre catégorie
+    async function rechercherEntreprises() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        let filteredResults = entreprises;
+
+        if (searchTerm) {
+            filteredResults = entreprises.filter(e =>
+                e.nom.toLowerCase().includes(searchTerm) || 
+                (e.descriptif && e.descriptif.toLowerCase().includes(searchTerm))
+            );
+
+        // S'il n'y a pas de résultats, consulter l'API en tant que dernière ressource.
+        if (filteredResults.length === 0) {
+            try {
+                console.log(`🔍 No encontrado localmente. Buscando en API: ${searchTerm}`);
+                const response = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(searchTerm)}`);
+                filteredResults = await response.json();
+                console.log("🔎 Résultats trouvés :", filteredResults.length);
+            } catch (error) {
+                console.error("❌ Error al buscar en la API:", error);
+            }
+        }
+    }
+
+    
+        // Filtrage par catégorie actif
+        if (currentCategory !== "Toutes") {
+            filteredResults = filteredResults.filter(e => e.categorie.toLowerCase() === currentCategory.toLowerCase());
+        }
+
+        afficherEntreprises(filteredResults);
+    }
+
     // 📌 Gestionnaires d'événements pour les nouveaux filtres
      categorySelect.addEventListener('change', function () {
         currentCategory = this.value;
@@ -133,8 +165,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         updateFilterTitles();
     });
 
-    searchButton.addEventListener('click', filtrerEntreprises);
-    searchInput.addEventListener('keyup', filtrerEntreprises);
+    searchButton.addEventListener('click', rechercherEntreprises);
+    searchInput.addEventListener('keyup', rechercherEntreprises);
 
     // 📌 Chargement initial
     filtrerEntreprises();
