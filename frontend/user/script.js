@@ -1,19 +1,17 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    const categorySelect = document.getElementById('categorySelect'); // Menu déroulant
+    const categorySelect = document.getElementById('categorySelect');
     const resultsContainer = document.getElementById('resultsContainer');
     const categoryTitle = document.getElementById('categoryTitle');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
 
-    let entreprises = await fetchEntreprises(); // Chargement initial
+    let entreprises = await fetchEntreprises();
     let currentCategory = "Toutes";
 
-    // 📌 Fonction pour récupérer les entreprises depuis l'API
     async function fetchEntreprises() {
         try {
             const response = await fetch('http://localhost:3000/entreprises');
             const entreprises = await response.json();
-            console.log("✅ Entreprises chargées :", entreprises);
             return entreprises;
         } catch (error) {
             console.error("❌ Erreur lors de la récupération des entreprises :", error);
@@ -21,7 +19,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    // 📌 Fonction pour filtrer les entreprises selon la catégorie
+    function getInitials(nom) {
+        return nom
+            .split(' ')
+            .filter(w => w.length > 0)
+            .slice(0, 2)
+            .map(word => word[0].toUpperCase())
+            .join('');
+    }
+
     function filtrerParCategorie(categorie) {
         categoryTitle.textContent = categorie === "Toutes" ? "Toutes les organisations" : categorie.toUpperCase();
         currentCategory = categorie;
@@ -35,52 +41,51 @@ document.addEventListener('DOMContentLoaded', async function () {
         afficherEntreprises(filteredData);
     }
 
-    // ✅ Fonction mise à jour pour afficher les entreprises avec les bons logos
     function afficherEntreprises(data) {
         resultsContainer.innerHTML = data.length
             ? data.map(entreprise => {
+                const hasLogo = entreprise.logo && entreprise.logo.trim() !== "";
                 const imagePath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
-                console.log("🔗 Image URL :", imagePath);
-    
+                const initials = getInitials(entreprise.nom);
+
                 return `
                     <div class="col-md-4 mb-4">
                         <div class="card shadow-sm p-3 text-center h-100">
-                            <img src="${imagePath}" 
-                                 onerror="this.src='https://via.placeholder.com/80';" 
-                                 alt="${entreprise.nom}" 
-                                 class="img-fluid mx-auto d-block rounded-circle" 
-                                 style="width: 80px; height: 80px; object-fit: contain;">
-                            <div class="fw-bold mt-2">${entreprise.nom}</div>
-                            <p class="text-muted">${entreprise.descriptif || ''}</p>
-                            <a href="${entreprise.lien_du_site}" target="_blank" class="d-block text-primary fw-bold mt-2">
-                                <i class="bi bi-link-45deg"></i> Écouter
+                            ${
+                                hasLogo
+                                ? `<img src="${imagePath}" 
+                                       onerror="this.src='https://via.placeholder.com/80';" 
+                                       alt="${entreprise.nom}" 
+                                       class="img-fluid mx-auto d-block rounded-circle" 
+                                       style="width: 80px; height: 80px; object-fit: contain;">`
+                                : `<div class="avatar-placeholder mx-auto mb-2">${initials}</div>`
+                            }
+                            <a href="${entreprise.lien_du_site}" 
+                               target="_blank" 
+                               class="fw-bold mt-2 custom-link d-block">
+                                ${entreprise.nom}
                             </a>
+                            <p class="text-muted">${entreprise.descriptif || ''}</p>
                         </div>
                     </div>
                 `;
             }).join('')
             : '<p class="text-center text-danger">Aucune organisation trouvée.</p>';
     }
-    
-    
 
-    // 📌 Fonction pour la recherche avec filtre catégorie
     async function rechercherEntreprises() {
         const searchTerm = searchInput.value.trim().toLowerCase();
         let filteredResults = entreprises;
 
         if (searchTerm) {
             try {
-                console.log(`🔍 Recherche pour : ${searchTerm}`);
                 const response = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(searchTerm)}`);
                 filteredResults = await response.json();
-                console.log("🔎 Résultats trouvés :", filteredResults.length);
             } catch (error) {
                 console.error("❌ Erreur lors de la recherche :", error);
             }
         }
 
-        // Filtrage par catégorie actif
         if (currentCategory !== "Toutes") {
             filteredResults = filteredResults.filter(e => e.categorie.toLowerCase() === currentCategory.toLowerCase());
         }
@@ -88,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         afficherEntreprises(filteredResults);
     }
 
-    // 📌 Événements
     categorySelect.addEventListener('change', function () {
         filtrerParCategorie(this.value);
     });
@@ -96,6 +100,5 @@ document.addEventListener('DOMContentLoaded', async function () {
     searchButton.addEventListener('click', rechercherEntreprises);
     searchInput.addEventListener('keyup', rechercherEntreprises);
 
-    // 📌 Chargement initial
     filtrerParCategorie(currentCategory);
 });
