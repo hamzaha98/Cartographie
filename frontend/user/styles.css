@@ -50,16 +50,45 @@ main {
     font-weight: bold;
 }
 
+/* Grille / Liste Toggle */
 .view-toggle {
     display: flex;
     margin-bottom: 15px;
     flex-wrap: wrap;
 }
 
+/* Mini carte (Leaflet) */
 #miniMap {
     height: 250px;
     min-height: 250px;
     width: 100%;
     border-radius: 8px;
     margin-top: 5px;
+}
+
+/* 🆕 Avatar quand pas de logo */
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-family: sans-serif;
+}
+
+/* Lien cliquable stylé */
+.custom-link {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.custom-link:hover {
+    color: #dc3545;
+    text-decoration: underline;
 }

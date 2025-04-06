@@ -2,43 +2,33 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { initializeDatabase } = require('./init-db');
 require('dotenv').config();
-
-// 📋 Simple audit log (fichier texte)
-const fs = require('fs');
-const logPath = path.join(__dirname, '../logs/audit.log');
-
-function logAction(action, entreprise, user = "admin") {
-  console.log("📢 logAction appelée:", action, entreprise.nom); // 🐞 debug log
-
-  const lines = [`[${new Date().toISOString()}] ${user} a effectué: ${action} sur "${entreprise.nom}" (ID: ${entreprise.id || 'nouveau'})`];
-
-  if (action === "Création") {
-    lines.push(`  ➕ Données: ${JSON.stringify(entreprise)}`);
-  }
-
-  const logEntry = lines.join('\n') + '\n';
-  fs.mkdirSync(path.dirname(logPath), { recursive: true });
-  fs.appendFileSync(logPath, logEntry);
-}
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// 📂 Fichiers statiques
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
 app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306
-}).promise();
+// 📋 Logger d'actions (audit)
+const logPath = path.join(__dirname, '../logs/audit.log');
 
-// ✅ Middleware de vérification d'authentification admin
+function logAction(action, entreprise, user = "admin") {
+  console.log("📢 logAction appelée:", action, entreprise.nom);
+  const lines = [`[${new Date().toISOString()}] ${user} a effectué: ${action} sur "${entreprise.nom}" (ID: ${entreprise.id || 'nouveau'})`];
+  if (action === "Création") {
+    lines.push(`  ➕ Données: ${JSON.stringify(entreprise)}`);
+  }
+  const logEntry = lines.join('\n') + '\n';
+  fs.mkdirSync(path.dirname(logPath), { recursive: true });
+  fs.appendFileSync(logPath, logEntry);
+}
+
+// 🔐 Middleware d’authentification admin
 function checkAdminAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader === 'Bearer admin123') {
@@ -48,6 +38,16 @@ function checkAdminAuth(req, res, next) {
   }
 }
 
+// 📌 Connexion à la base de données
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306
+}).promise();
+
+// 📌 GET - toutes les entreprises
 app.get('/entreprises', async (req, res) => {
   try {
     const [results] = await pool.query('SELECT * FROM entreprises');
@@ -58,6 +58,7 @@ app.get('/entreprises', async (req, res) => {
   }
 });
 
+// 📌 Recherche par mot-clé
 app.get('/search', async (req, res) => {
   const searchTerm = req.query.q;
   if (!searchTerm) {
@@ -65,13 +66,13 @@ app.get('/search', async (req, res) => {
   }
 
   try {
-    const query = `
-      SELECT * FROM entreprises 
-      WHERE LOWER(nom) LIKE LOWER(?) 
-      OR LOWER(descriptif) LIKE LOWER(?) 
-      OR LOWER(mots_cles) LIKE LOWER(?)
-    `;
-    const [results] = await pool.query(query, [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]);
+    const [results] = await pool.query(
+      `SELECT * FROM entreprises 
+       WHERE LOWER(nom) LIKE LOWER(?) 
+       OR LOWER(descriptif) LIKE LOWER(?) 
+       OR LOWER(mots_cles) LIKE LOWER(?)`,
+      [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
+    );
     res.json(results);
   } catch (error) {
     console.error('Erreur SQL:', error);
@@ -79,14 +80,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-app.get('/config/api-key', (req, res) => {
-  res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
-});
-
-app.get('/maptiler-key', (req, res) => {
-  res.json({ key: process.env.MAPTILER_API_KEY });
-});
-
+// 📌 GET - entreprise par ID
 app.get('/entreprises/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -101,11 +95,21 @@ app.get('/entreprises/:id', async (req, res) => {
   }
 });
 
-// 🔒 Protéger la création d'une entreprise
+// 📌 GET - API keys
+app.get('/config/api-key', (req, res) => {
+  res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
+});
+
+app.get('/maptiler-key', (req, res) => {
+  res.json({ key: process.env.MAPTILER_API_KEY });
+});
+
+// 📌 POST - créer une entreprise (auth + journalisation)
 app.post('/entreprises', checkAdminAuth, async (req, res) => {
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
+
   if (!nom) {
-    return res.status(400).json({ error: "Veuillez fournir un nom pour l'entreprise." });
+    return res.status(400).json({ success: false, error: "Veuillez fournir un nom pour l'entreprise." });
   }
 
   try {
@@ -113,18 +117,8 @@ app.post('/entreprises', checkAdminAuth, async (req, res) => {
       'INSERT INTO entreprises (nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu]
     );
-    // 📋 Enregistrer l'action dans le journal
-    logAction("Création", {
-      nom,
-      logo,
-      descriptif,
-      lien_du_site,
-      categorie,
-      mots_cles,
-      lieu,
-      id: result.insertId
-    });
-        res.status(201).json({
+
+    const newEntreprise = {
       id: result.insertId,
       nom,
       logo: `/logos/${categorie}/${logo}`,
@@ -133,85 +127,83 @@ app.post('/entreprises', checkAdminAuth, async (req, res) => {
       categorie,
       mots_cles,
       lieu
+    };
+
+    logAction("Création", newEntreprise);
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(201).json({
+      success: true,
+      message: "Entreprise ajoutée avec succès.",
+      entreprise: newEntreprise
     });
   } catch (error) {
     console.error('Erreur SQL:', error);
-    res.status(500).json({ error: "Erreur lors de l'ajout de l'entreprise." });
+    res.status(500).json({ success: false, error: "Erreur lors de l'ajout de l'entreprise." });
   }
 });
 
-// 🔒 Protéger la suppression d'une entreprise
+// 📌 DELETE - supprimer une entreprise
 app.delete('/entreprises/:id', checkAdminAuth, async (req, res) => {
   const { id } = req.params;
 
   try {
-    // 🔍 Récupérer nom avant suppression
     const [old] = await pool.query('SELECT nom FROM entreprises WHERE id = ?', [id]);
-
     const [result] = await pool.query('DELETE FROM entreprises WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Entreprise non trouvée." });
     }
 
-    // 📋 Journaliser la suppression si entreprise existait
     if (old.length > 0) {
       logAction("Suppression", { nom: old[0].nom, id });
     }
 
-    res.json({ message: "Entreprise supprimée avec succès !" });
-
+    res.json({ success: true, message: "Entreprise supprimée avec succès !" });
   } catch (error) {
     console.error('🔥 ERREUR SQL:', error);
-    res.status(500).json({ error: "Erreur lors de la suppression." });
+    res.status(500).json({ success: false, error: "Erreur lors de la suppression." });
   }
 });
 
-
-// 🔒 Protéger la modification d'une entreprise
+// 📌 PUT - modifier une entreprise
 app.put('/entreprises/:id', checkAdminAuth, async (req, res) => {
   const { id } = req.params;
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
+
   if (!nom) {
-    return res.status(400).json({ error: "Le champ 'nom' est obligatoire." });
+    return res.status(400).json({ success: false, error: "Le champ 'nom' est obligatoire." });
   }
 
   try {
     const [result] = await pool.query(
       `UPDATE entreprises 
-       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ?
+       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ? 
        WHERE id = ?`,
       [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu, id]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Entreprise non trouvée." });
+      return res.status(404).json({ success: false, error: "Entreprise non trouvée." });
     }
-    // 📋 Journaliser la modification
-    logAction("Modification", {
-      id,
-      nom,
-      logo,
-      descriptif,
-      lien_du_site,
-      categorie,
-      mots_cles,
-      lieu
-    });
-    res.json({ message: "Entreprise modifiée avec succès !" });
+
+    logAction("Modification", { id, nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu });
+
+    res.json({ success: true, message: "Entreprise modifiée avec succès !" });
   } catch (error) {
     console.error('🔥 ERREUR SQL:', error);
-    res.status(500).json({ error: "Erreur lors de la modification." });
+    res.status(500).json({ success: false, error: "Erreur lors de la modification." });
   }
 });
 
+// 🚀 Lancer le serveur
 async function startServer() {
   try {
     await initializeDatabase();
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
-      console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
+      console.log(`🚀 Interface admin   : http://localhost:${PORT}/frontend/admin/index.html`);
     });
   } catch (error) {
     console.error('❌ Erreur au démarrage du serveur:', error);

@@ -1,4 +1,3 @@
-
 // 🛡️ Rediriger vers login si non connecté
 if (!localStorage.getItem("admin_token")) {
     window.location.href = "/frontend/admin/login.html";
@@ -9,20 +8,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const messageBox = document.getElementById("message");
     const entreprisesTable = document.getElementById("entreprisesTable");
     const submitBtn = document.getElementById("submitBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
     let editingId = null;
 
     const headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + localStorage.getItem("admin_token")
     };
-    const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("admin_token");
-        window.location.href = "/frontend/admin/login.html";
-    });
-}
 
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("admin_token");
+            window.location.href = "/frontend/admin/login.html";
+        });
+    }
 
     async function loadEntreprises() {
         try {
@@ -65,8 +64,9 @@ if (logoutBtn) {
             lieu: document.getElementById("lieu").value.trim()
         };
 
+        let response;
+
         try {
-            let response;
             if (editingId) {
                 response = await fetch(`http://localhost:3000/entreprises/${editingId}`, {
                     method: "PUT",
@@ -81,26 +81,25 @@ if (logoutBtn) {
                 });
             }
 
-            const data = await response.json();
+            let data = {};
+            const contentType = response.headers.get("Content-Type") || "";
+            if (contentType.includes("application/json")) {
+                data = await response.json();
+            }
 
-            if (response.ok) {
-                messageBox.className = "alert alert-success";
-                messageBox.textContent = editingId ? "Entreprise modifiée avec succès!" : "Entreprise ajoutée avec succès!";
-                messageBox.classList.remove("d-none");
+            if (response.ok && data.success !== false) {
+                afficherMessage("alert-success", data.message || (editingId ? "Entreprise modifiée avec succès!" : "Entreprise ajoutée avec succès!"));
                 entrepriseForm.reset();
                 editingId = null;
                 submitBtn.textContent = "Ajouter l'entreprise";
                 loadEntreprises();
             } else {
-                messageBox.className = "alert alert-danger";
-                messageBox.textContent = `Erreur: ${data.error || "Impossible d'ajouter ou modifier l'entreprise."}`;
-                messageBox.classList.remove("d-none");
+                afficherMessage("alert-danger", data.error || "Erreur inconnue.");
             }
+
         } catch (error) {
-            messageBox.className = "alert alert-danger";
-            messageBox.textContent = "Erreur de connexion.";
-            messageBox.classList.remove("d-none");
-            console.error("❌ Erreur lors de la requête:", error);
+            console.error("❌ Erreur lors de la requête :", error);
+            afficherMessage("alert-danger", "Erreur de connexion au serveur.");
         }
     });
 
@@ -108,7 +107,11 @@ if (logoutBtn) {
         try {
             const response = await fetch(`http://localhost:3000/entreprises/${id}`);
             const entreprise = await response.json();
-            if (!response.ok) return;
+
+            if (!response.ok) {
+                console.error("⚠️ Erreur de récupération :", entreprise.error);
+                return;
+            }
 
             document.getElementById("nom").value = entreprise.nom;
             document.getElementById("logo").value = entreprise.logo;
@@ -142,6 +145,15 @@ if (logoutBtn) {
             }
         }
     };
+
+    function afficherMessage(type, texte) {
+        messageBox.className = `alert ${type}`;
+        messageBox.textContent = texte;
+        messageBox.classList.remove("d-none");
+        setTimeout(() => {
+            messageBox.classList.add("d-none");
+        }, 5000);
+    }
 
     loadEntreprises();
 });

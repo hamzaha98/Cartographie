@@ -1,101 +1,141 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interface Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #f4f6f8;
+    }
+    .form-section, .table-section {
+      border-radius: 12px;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .btn i {
+      margin-right: 5px;
+    }
+    .logo-img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    h2, h4 {
+      color: #343a40;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <div class="container mt-5">
-        <div class="card shadow-sm p-4">
-            <h2 class="mb-4 text-center">Gestion des Entreprises</h2>
-            <div class="text-end">
-                <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Déconnexion</button>
-              </div>
+  <div class="container mt-5">
+    <div class="card shadow-sm p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0 text-center flex-grow-1">Gestion des Entreprises</h2>
+        <button id="logoutBtn" class="btn btn-outline-danger btn-sm ms-3">Déconnexion</button>
+      </div>
 
-            <!-- Formulaire d'ajout -->
-            <form id="entrepriseForm">
-                <h4>Ajouter une entreprise</h4>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="nom" class="form-label">Nom:</label>
-                        <input type="text" class="form-control" id="nom" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="logo" class="form-label">Logo (URL):</label>
-                        <input type="text" class="form-control" id="logo">
-                    </div>
-                </div>
+      <!-- Section: Formulaire -->
+      <div class="card form-section shadow-sm p-4 mb-4 bg-white">
+        <form id="entrepriseForm">
+          <h4 class="mb-3">Ajouter une entreprise</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="nom" class="form-label">Nom</label>
+              <input type="text" class="form-control" id="nom" placeholder="Nom de l'entreprise" required />
+            </div>
+            <div class="col-md-6">
+              <label for="logo" class="form-label">Logo (URL)</label>
+              <input type="text" class="form-control" id="logo" placeholder="https://..." />
+            </div>
+            <div class="col-md-6">
+              <label for="descriptif" class="form-label">Descriptif</label>
+              <textarea class="form-control" id="descriptif" rows="2" placeholder="Description de l'entreprise"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label for="lien_du_site" class="form-label">Site Web</label>
+              <input type="url" class="form-control" id="lien_du_site" placeholder="https://siteweb.com" />
+            </div>
+            <div class="col-md-6">
+              <label for="categorie" class="form-label">Catégorie</label>
+              <select id="categorie" class="form-select" required>
+                <option value="">Sélectionner une catégorie</option>
+                <option value="Balados">Balados</option>
+                <option value="Évènements">Évènements</option>
+                <option value="CompétitionsConcours">Compétitions et Concours</option>
+                <option value="EDTECH">Technologies Éducatives (EDTECH)</option>
+                <option value="OrganismesFormation">Organismes de Formation</option>
+                <option value="Fédérations">Fédérations</option>
+                <option value="Organismessoutien">Organismes de soutien</option>
+                <option value="Soutienélève">Soutien à l'élève</option>
+                <option value="DéveloppementDurable">Développement Durable</option>
+                <option value="Robotique">Robotique</option>
+                <option value="IncubationEntrepreneuriale">Incubation Entrepreneuriale</option>
+                <option value="NouvellesÉditoriaux">Nouvelles - Éditoriaux</option>
+                <option value="FinancementParticipatif">Financement Participatif</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="mots_cles" class="form-label">Mots-clés</label>
+              <input type="text" class="form-control" id="mots_cles" placeholder="ex: éducation, innovation..." />
+            </div>
+            <div class="col-12">
+              <label for="lieu" class="form-label">Lieu</label>
+              <input type="text" class="form-control" id="lieu" placeholder="Ville, pays" />
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fa-solid fa-plus"></i> Ajouter l'entreprise
+              </button>
+            </div>
+          </div>
+        </form>
+        <div id="message" class="alert d-none mt-3"></div>
+      </div>
 
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <label for="descriptif" class="form-label">Descriptif:</label>
-                        <textarea class="form-control" id="descriptif" rows="2"></textarea>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="lien_du_site" class="form-label">Site Web:</label>
-                        <input type="url" class="form-control" id="lien_du_site">
-                    </div>
-                </div>
-
-                <div class="row mt-3">
-                    <div class="col-md-6"> 
-                        <label for="categorie" class="form-label">Catégorie:</label>
-                        <select id="categorie" class="form-select" required>
-                            <option value="">Sélectionner</option>
-                            <option value="Balados">Balados</option>
-                            <option value="Évènements">Évènements</option>
-                            <option value="CompétitionsConcours">Compétitions et Concours</option>
-                            <option value="EDTECH">Technologies Éducatives (EDTECH)</option>
-                            <option value="OrganismesFormation">Organismes de Formation</option>
-                            <option value="Fédérations">Fédérations</option>
-                            <option value="Organismessoutien">Organismes de soutien</option>
-                            <option value="Soutienélève">Soutien à l'élève</option>
-                            <option value="DéveloppementDurable">Développement Durable</option>
-                            <option value="Robotique">Robotique</option>
-                            <option value="IncubationEntrepreneuriale">Incubation Entrepreneuriale</option>
-                            <option value="NouvellesÉditoriaux">Nouvelles - Éditoriaux</option>
-                            <option value="FinancementParticipatif">Financement Participatif</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="mots_cles" class="form-label">Mots-clés:</label>
-                        <input type="text" class="form-control" id="mots_cles">
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <label for="lieu" class="form-label">Lieu:</label>
-                    <input type="text" class="form-control" id="lieu">
-                </div>
-
-                <button type="submit" class="btn btn-primary mt-3 w-100">Ajouter l'entreprise</button>
-            </form>
-
-            <div id="message" class="alert d-none mt-3"></div>
+      <!-- Section: Tableau -->
+      <div class="card table-section shadow-sm p-4 bg-white">
+        <h4 class="mb-3">Liste des entreprises</h4>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Nom</th>
+                <th>Logo</th>
+                <th>Catégorie</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="entreprisesTable">
+              <!-- Exemple :
+              <tr>
+                <td>Exemple Inc.</td>
+                <td><img src="https://via.placeholder.com/50" class="logo-img" alt="Logo" /></td>
+                <td>EDTECH</td>
+                <td class="text-center">
+                  <button class="btn btn-warning btn-sm me-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Modifier
+                  </button>
+                  <button class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-trash"></i> Supprimer
+                  </button>
+                </td>
+              </tr>
+              -->
+            </tbody>
+          </table>
         </div>
-
-        <!-- 📌 Tableau de gestion -->
-        <div class="card mt-4 p-4">
-            <h4>Liste des entreprises</h4>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Logo</th>
-                        <th>Catégorie</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="entreprisesTable"></tbody>
-            </table>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <script src="admin.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <!-- Scripts -->
+  <script src="admin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>
