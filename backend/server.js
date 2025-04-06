@@ -9,19 +9,19 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ✅ Correction : Servir les logos depuis /logos (à la racine du projet)
+// ✅ Servir les logos
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
 
-// 📌 Configuration de la connexion à la base de données
+// 📌 Configuration de la base de données
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,      
-  user: process.env.DB_USER,          
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306
 }).promise();
 
-// 📌 Route pour récupérer toutes les entreprises
+// 📌 GET toutes les entreprises
 app.get('/entreprises', async (req, res) => {
   try {
     const [results] = await pool.query('SELECT * FROM entreprises');
@@ -32,9 +32,9 @@ app.get('/entreprises', async (req, res) => {
   }
 });
 
-// 📌 Route pour rechercher une entreprise par mot-clé
+// 📌 Recherche par mot-clé
 app.get('/search', async (req, res) => {
-  const searchTerm = req.query.q;  
+  const searchTerm = req.query.q;
   if (!searchTerm) {
     return res.status(400).json({ error: "Veuillez entrer un terme de recherche." });
   }
@@ -54,7 +54,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// 📌 Route pour récupérer une entreprise par ID
+// 📌 GET entreprise par ID
 app.get('/entreprises/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -69,12 +69,12 @@ app.get('/entreprises/:id', async (req, res) => {
   }
 });
 
-// 📌 Route pour ajouter une entreprise
+// 📌 POST ajouter une entreprise (✅ corrigée avec setHeader)
 app.post('/entreprises', async (req, res) => {
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
 
   if (!nom) {
-    return res.status(400).json({ error: "Veuillez fournir un nom pour l'entreprise." });
+    return res.status(400).json({ success: false, error: "Veuillez fournir un nom pour l'entreprise." });
   }
 
   try {
@@ -82,23 +82,33 @@ app.post('/entreprises', async (req, res) => {
       'INSERT INTO entreprises (nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu]
     );
-    res.status(201).json({ 
-      id: result.insertId, 
-      nom, 
-      logo: `/logos/${categorie}/${logo}`, 
-      descriptif, 
-      lien_du_site, 
-      categorie, 
-      mots_cles, 
-      lieu 
+
+    const newEntreprise = {
+      id: result.insertId,
+      nom,
+      logo: `/logos/${categorie}/${logo}`,
+      descriptif,
+      lien_du_site,
+      categorie,
+      mots_cles,
+      lieu
+    };
+
+    // ✅ Ajout du Content-Type explicite
+    res.setHeader('Content-Type', 'application/json');
+    res.status(201).json({
+      success: true,
+      message: "Entreprise ajoutée avec succès.",
+      entreprise: newEntreprise
     });
+
   } catch (error) {
     console.error('Erreur SQL:', error);
-    res.status(500).json({ error: "Erreur lors de l'ajout de l'entreprise." });
+    res.status(500).json({ success: false, error: "Erreur lors de l'ajout de l'entreprise." });
   }
 });
 
-// 📌 Route pour supprimer une entreprise par ID (DELETE)
+// 📌 DELETE entreprise
 app.delete('/entreprises/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -109,42 +119,42 @@ app.delete('/entreprises/:id', async (req, res) => {
       return res.status(404).json({ error: "Entreprise non trouvée." });
     }
 
-    res.json({ message: "Entreprise supprimée avec succès !" });
+    res.json({ success: true, message: "Entreprise supprimée avec succès !" });
   } catch (error) {
     console.error('🔥 ERREUR SQL:', error);
-    res.status(500).json({ error: "Erreur lors de la suppression." });
+    res.status(500).json({ success: false, error: "Erreur lors de la suppression." });
   }
 });
 
-// 📌 Route pour modifier une entreprise par ID (PUT)
+// 📌 PUT modifier une entreprise
 app.put('/entreprises/:id', async (req, res) => {
   const { id } = req.params;
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
 
   if (!nom) {
-      return res.status(400).json({ error: "Le champ 'nom' est obligatoire." });
+    return res.status(400).json({ success: false, error: "Le champ 'nom' est obligatoire." });
   }
 
   try {
-      const [result] = await pool.query(
-          `UPDATE entreprises 
-           SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ?
-           WHERE id = ?`,
-          [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu, id]
-      );
+    const [result] = await pool.query(
+      `UPDATE entreprises 
+       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ?
+       WHERE id = ?`,
+      [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu, id]
+    );
 
-      if (result.affectedRows === 0) {
-          return res.status(404).json({ error: "Entreprise non trouvée." });
-      }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: "Entreprise non trouvée." });
+    }
 
-      res.json({ message: "Entreprise modifiée avec succès !" });
+    res.json({ success: true, message: "Entreprise modifiée avec succès !" });
   } catch (error) {
-      console.error('🔥 ERREUR SQL:', error);
-      res.status(500).json({ error: "Erreur lors de la modification." });
+    console.error('🔥 ERREUR SQL:', error);
+    res.status(500).json({ success: false, error: "Erreur lors de la modification." });
   }
 });
 
-// 📌 Démarrer le serveur
+// 📌 Lancer le serveur
 async function startServer() {
   try {
     await initializeDatabase();

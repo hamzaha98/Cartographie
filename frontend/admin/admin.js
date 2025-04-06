@@ -3,36 +3,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const messageBox = document.getElementById("message");
     const entreprisesTable = document.getElementById("entreprisesTable");
     const submitBtn = document.getElementById("submitBtn");
-    let editingId = null;  // ID de l'entreprise en cours de modification
+    let editingId = null;
 
-    // 🔄 Charger les entreprises existantes
     async function loadEntreprises() {
         try {
             const response = await fetch("http://localhost:3000/entreprises");
             const entreprises = await response.json();
-    
+
             entreprisesTable.innerHTML = entreprises.map(entreprise => {
-                // Construction dynamique du chemin du logo
                 const logoPath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
-    
+
                 return `
                     <tr>
                         <td>${entreprise.nom}</td>
                         <td>
-                            <div style="
-                                width: 60px;
-                                height: 60px;
-                                border: 1px solid #ccc;
-                                background-color: #fff;
-                                border-radius: 6px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            ">
-                                <img src="${logoPath}"
-                                     alt="Logo"
-                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                                     onerror="this.src='https://via.placeholder.com/60';">
+                            <div style="width: 60px; height: 60px; border: 1px solid #ccc; background-color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <img src="${logoPath}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='https://via.placeholder.com/60';">
                             </div>
                         </td>
                         <td>${entreprise.categorie}</td>
@@ -47,10 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("❌ Erreur lors du chargement des entreprises:", error);
         }
     }
-    
-    
 
-    // 🔄 Ajouter ou Modifier une entreprise
     entrepriseForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
@@ -64,19 +47,16 @@ document.addEventListener("DOMContentLoaded", function () {
             lieu: document.getElementById("lieu").value.trim()
         };
 
+        let response;
+
         try {
-            let response;
             if (editingId) {
-                // Modifier une entreprise existante
-                console.log(`📝 Modification en cours pour l'ID: ${editingId}`);
                 response = await fetch(`http://localhost:3000/entreprises/${editingId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(entreprise)
                 });
             } else {
-                // Ajouter une nouvelle entreprise
-                console.log("➕ Ajout d'une nouvelle entreprise...");
                 response = await fetch("http://localhost:3000/entreprises", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -84,32 +64,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
 
-            const data = await response.json();
-
-            if (response.ok) {
-                messageBox.className = "alert alert-success";
-                messageBox.textContent = editingId ? "Entreprise modifiée avec succès!" : "Entreprise ajoutée avec succès!";
-                messageBox.classList.remove("d-none");
-
-                entrepriseForm.reset();
-                editingId = null;  // Réinitialiser après modification
-                submitBtn.textContent = "Ajouter l'entreprise"; // Remettre le bouton à son état initial
-
-                loadEntreprises(); // Actualiser la liste
-            } else {
-                messageBox.className = "alert alert-danger";
-                messageBox.textContent = `Erreur: ${data.error || "Impossible d'ajouter ou modifier l'entreprise."}`;
-                messageBox.classList.remove("d-none");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                afficherMessage("alert-danger", errorData.error || "Une erreur est survenue.");
+                return;
             }
+
+            let data = {};
+            const contentType = response.headers.get("Content-Type") || "";
+            if (contentType.includes("application/json")) {
+                data = await response.json();
+            }
+
+            if (data.success) {
+                afficherMessage("alert-success", data.message || "Entreprise ajoutée !");
+                entrepriseForm.reset();
+                editingId = null;
+                submitBtn.textContent = "Ajouter l'entreprise";
+                loadEntreprises();
+            } else {
+                afficherMessage("alert-danger", data.error || "Erreur inconnue.");
+            }
+
         } catch (error) {
-            messageBox.className = "alert alert-danger";
-            messageBox.textContent = "Erreur de connexion.";
-            messageBox.classList.remove("d-none");
-            console.error("❌ Erreur lors de la requête:", error);
+            console.error("❌ Erreur lors de la requête :", error);
+            if (!response || !response.ok) {
+                afficherMessage("alert-danger", "Erreur de connexion au serveur.");
+            }
         }
     });
 
-    // 🔄 Charger les données dans le formulaire pour modification
     window.editEntreprise = async function (id) {
         console.log(`🔄 Chargement des données pour l'édition de l'entreprise ID: ${id}`);
         try {
@@ -117,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const entreprise = await response.json();
 
             if (!response.ok) {
-                console.error("⚠️ Erreur de récupération:", entreprise.error);
+                console.error("⚠️ Erreur de récupération :", entreprise.error);
                 return;
             }
 
@@ -129,7 +113,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("mots_cles").value = entreprise.mots_cles;
             document.getElementById("lieu").value = entreprise.lieu;
 
-            // 📝 Mettre à jour l'ID d'édition et le texte du bouton
             editingId = id;
             submitBtn.textContent = "Modifier l'entreprise";
             console.log(`✔️ ID stocké pour modification: ${editingId}`);
@@ -139,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // 🔄 Supprimer une entreprise
     window.deleteEntreprise = async function (id) {
         if (confirm("⚠️ Voulez-vous vraiment supprimer cette entreprise ?")) {
             try {
@@ -157,6 +139,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Charger les entreprises au démarrage
+    function afficherMessage(type, texte) {
+        messageBox.className = `alert ${type}`;
+        messageBox.textContent = texte;
+        messageBox.classList.remove("d-none");
+        setTimeout(() => {
+            messageBox.classList.add("d-none");
+        }, 5000);
+    }
+
     loadEntreprises();
 });
