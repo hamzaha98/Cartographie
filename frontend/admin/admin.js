@@ -1,9 +1,27 @@
+// 🛡️ Rediriger vers login si non connecté
+if (!localStorage.getItem("admin_token")) {
+    window.location.href = "/frontend/admin/login.html";
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const entrepriseForm = document.getElementById("entrepriseForm");
     const messageBox = document.getElementById("message");
     const entreprisesTable = document.getElementById("entreprisesTable");
     const submitBtn = document.getElementById("submitBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
     let editingId = null;
+
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("admin_token")
+    };
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("admin_token");
+            window.location.href = "/frontend/admin/login.html";
+        });
+    }
 
     async function loadEntreprises() {
         try {
@@ -12,13 +30,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             entreprisesTable.innerHTML = entreprises.map(entreprise => {
                 const logoPath = `http://localhost:3000/logos/${entreprise.categorie}/${entreprise.logo}`;
-
                 return `
                     <tr>
                         <td>${entreprise.nom}</td>
                         <td>
                             <div style="width: 60px; height: 60px; border: 1px solid #ccc; background-color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                <img src="${logoPath}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='https://via.placeholder.com/60';">
+                                <img src="${logoPath}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='/logos/default.png';">
                             </div>
                         </td>
                         <td>${entreprise.categorie}</td>
@@ -53,21 +70,15 @@ document.addEventListener("DOMContentLoaded", function () {
             if (editingId) {
                 response = await fetch(`http://localhost:3000/entreprises/${editingId}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers,
                     body: JSON.stringify(entreprise)
                 });
             } else {
                 response = await fetch("http://localhost:3000/entreprises", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers,
                     body: JSON.stringify(entreprise)
                 });
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                afficherMessage("alert-danger", errorData.error || "Une erreur est survenue.");
-                return;
             }
 
             let data = {};
@@ -76,8 +87,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 data = await response.json();
             }
 
-            if (data.success) {
-                afficherMessage("alert-success", data.message || "Entreprise ajoutée !");
+            if (response.ok && data.success !== false) {
+                afficherMessage("alert-success", data.message || (editingId ? "Entreprise modifiée avec succès!" : "Entreprise ajoutée avec succès!"));
                 entrepriseForm.reset();
                 editingId = null;
                 submitBtn.textContent = "Ajouter l'entreprise";
@@ -88,14 +99,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } catch (error) {
             console.error("❌ Erreur lors de la requête :", error);
-            if (!response || !response.ok) {
-                afficherMessage("alert-danger", "Erreur de connexion au serveur.");
-            }
+            afficherMessage("alert-danger", "Erreur de connexion au serveur.");
         }
     });
 
     window.editEntreprise = async function (id) {
-        console.log(`🔄 Chargement des données pour l'édition de l'entreprise ID: ${id}`);
         try {
             const response = await fetch(`http://localhost:3000/entreprises/${id}`);
             const entreprise = await response.json();
@@ -115,8 +123,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             editingId = id;
             submitBtn.textContent = "Modifier l'entreprise";
-            console.log(`✔️ ID stocké pour modification: ${editingId}`);
-
         } catch (error) {
             console.error("❌ Erreur lors du chargement des données :", error);
         }
@@ -125,9 +131,10 @@ document.addEventListener("DOMContentLoaded", function () {
     window.deleteEntreprise = async function (id) {
         if (confirm("⚠️ Voulez-vous vraiment supprimer cette entreprise ?")) {
             try {
-                console.log(`🗑️ Suppression de l'entreprise ID: ${id}`);
-                const response = await fetch(`http://localhost:3000/entreprises/${id}`, { method: "DELETE" });
-
+                const response = await fetch(`http://localhost:3000/entreprises/${id}`, {
+                    method: "DELETE",
+                    headers
+                });
                 if (response.ok) {
                     loadEntreprises();
                 } else {

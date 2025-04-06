@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { initializeDatabase } = require('./init-db');
 require('dotenv').config();
 
@@ -9,10 +10,35 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ✅ Servir les logos
+// 📂 Fichiers statiques
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
+app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
-// 📌 Configuration de la base de données
+// 📋 Logger d'actions (audit)
+const logPath = path.join(__dirname, '../logs/audit.log');
+
+function logAction(action, entreprise, user = "admin") {
+  console.log("📢 logAction appelée:", action, entreprise.nom);
+  const lines = [`[${new Date().toISOString()}] ${user} a effectué: ${action} sur "${entreprise.nom}" (ID: ${entreprise.id || 'nouveau'})`];
+  if (action === "Création") {
+    lines.push(`  ➕ Données: ${JSON.stringify(entreprise)}`);
+  }
+  const logEntry = lines.join('\n') + '\n';
+  fs.mkdirSync(path.dirname(logPath), { recursive: true });
+  fs.appendFileSync(logPath, logEntry);
+}
+
+// 🔐 Middleware d’authentification admin
+function checkAdminAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader === 'Bearer admin123') {
+    next();
+  } else {
+    res.status(401).json({ error: "Non autorisé" });
+  }
+}
+
+// 📌 Connexion à la base de données
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -21,7 +47,7 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306
 }).promise();
 
-// 📌 GET toutes les entreprises
+// 📌 GET - toutes les entreprises
 app.get('/entreprises', async (req, res) => {
   try {
     const [results] = await pool.query('SELECT * FROM entreprises');
@@ -40,13 +66,13 @@ app.get('/search', async (req, res) => {
   }
 
   try {
-    const query = `
-      SELECT * FROM entreprises 
-      WHERE LOWER(nom) LIKE LOWER(?) 
-      OR LOWER(descriptif) LIKE LOWER(?) 
-      OR LOWER(mots_cles) LIKE LOWER(?)
-    `;
-    const [results] = await pool.query(query, [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]);
+    const [results] = await pool.query(
+      `SELECT * FROM entreprises 
+       WHERE LOWER(nom) LIKE LOWER(?) 
+       OR LOWER(descriptif) LIKE LOWER(?) 
+       OR LOWER(mots_cles) LIKE LOWER(?)`,
+      [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
+    );
     res.json(results);
   } catch (error) {
     console.error('Erreur SQL:', error);
@@ -54,7 +80,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// 📌 GET entreprise par ID
+// 📌 GET - entreprise par ID
 app.get('/entreprises/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -69,8 +95,17 @@ app.get('/entreprises/:id', async (req, res) => {
   }
 });
 
-// 📌 POST ajouter une entreprise (✅ corrigée avec setHeader)
-app.post('/entreprises', async (req, res) => {
+// 📌 GET - API keys
+app.get('/config/api-key', (req, res) => {
+  res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
+});
+
+app.get('/maptiler-key', (req, res) => {
+  res.json({ key: process.env.MAPTILER_API_KEY });
+});
+
+// 📌 POST - créer une entreprise (auth + journalisation)
+app.post('/entreprises', checkAdminAuth, async (req, res) => {
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
 
   if (!nom) {
@@ -94,29 +129,34 @@ app.post('/entreprises', async (req, res) => {
       lieu
     };
 
-    // ✅ Ajout du Content-Type explicite
+    logAction("Création", newEntreprise);
+
     res.setHeader('Content-Type', 'application/json');
     res.status(201).json({
       success: true,
       message: "Entreprise ajoutée avec succès.",
       entreprise: newEntreprise
     });
-
   } catch (error) {
     console.error('Erreur SQL:', error);
     res.status(500).json({ success: false, error: "Erreur lors de l'ajout de l'entreprise." });
   }
 });
 
-// 📌 DELETE entreprise
-app.delete('/entreprises/:id', async (req, res) => {
+// 📌 DELETE - supprimer une entreprise
+app.delete('/entreprises/:id', checkAdminAuth, async (req, res) => {
   const { id } = req.params;
 
   try {
+    const [old] = await pool.query('SELECT nom FROM entreprises WHERE id = ?', [id]);
     const [result] = await pool.query('DELETE FROM entreprises WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Entreprise non trouvée." });
+    }
+
+    if (old.length > 0) {
+      logAction("Suppression", { nom: old[0].nom, id });
     }
 
     res.json({ success: true, message: "Entreprise supprimée avec succès !" });
@@ -126,8 +166,8 @@ app.delete('/entreprises/:id', async (req, res) => {
   }
 });
 
-// 📌 PUT modifier une entreprise
-app.put('/entreprises/:id', async (req, res) => {
+// 📌 PUT - modifier une entreprise
+app.put('/entreprises/:id', checkAdminAuth, async (req, res) => {
   const { id } = req.params;
   const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
 
@@ -138,7 +178,7 @@ app.put('/entreprises/:id', async (req, res) => {
   try {
     const [result] = await pool.query(
       `UPDATE entreprises 
-       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ?
+       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ? 
        WHERE id = ?`,
       [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu, id]
     );
@@ -147,6 +187,8 @@ app.put('/entreprises/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: "Entreprise non trouvée." });
     }
 
+    logAction("Modification", { id, nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu });
+
     res.json({ success: true, message: "Entreprise modifiée avec succès !" });
   } catch (error) {
     console.error('🔥 ERREUR SQL:', error);
@@ -154,15 +196,14 @@ app.put('/entreprises/:id', async (req, res) => {
   }
 });
 
-// 📌 Lancer le serveur
+// 🚀 Lancer le serveur
 async function startServer() {
   try {
     await initializeDatabase();
-
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
-      console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
+      console.log(`🚀 Interface admin   : http://localhost:${PORT}/frontend/admin/index.html`);
     });
   } catch (error) {
     console.error('❌ Erreur au démarrage du serveur:', error);
