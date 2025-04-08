@@ -1,51 +1,45 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cartographie de l'écosystème éducatif</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cartographie de l'écosystème éducatif</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
-    <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="#">🎓 Créativité Québec</a>
-      <form class="d-flex ms-auto">
-        <input
-          class="form-control me-2"
-          type="search"
-          id="searchInput"
-          placeholder="🔍 Rechercher une organisation..."
-        />
-        <button class="btn btn-primary" id="searchButton" type="button">
-          Rechercher
-        </button>
-      </form>
-    </div>
-  </nav>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">🎓 Créativité Québec</a>
+            <form class="d-flex ms-auto">
+                <input class="form-control me-2" type="search" id="searchInput" placeholder="🔍 Rechercher une organisation...">
+                <button class="btn btn-primary" id="searchButton" type="button">Rechercher</button>
+            </form>
+        </div>
+    </nav>
 
-  <!-- Main layout -->
-  <main class="container-fluid mt-3">
-    <div class="row">
+    <main class="container-fluid mt-3">
+        <div class="row">
 
-      <!-- Sidebar -->
-      <div class="col-md-3">
-        <div class="card p-3">
-          <h5 class="fw-bold">Catégories</h5>
-          <select id="categorySelect" class="form-select">
+            <!-- Sidebar -->
+<!-- Sidebar -->
+<div class="col-md-3">
+    <!-- Filtre : Catégories -->
+    <div class="card p-3">
+        <h5 class="fw-bold">Catégories</h5>
+        <select id="categorySelect" class="form-select">
             <option value="Toutes">Sélectionner</option>
             <option value="Balados">Balados</option>
             <option value="Évènements">Évènements</option>
@@ -61,43 +55,94 @@
             <option value="Incubation Entrepreneuriale">Incubation Entrepreneurielle</option>
             <option value="Nouvelles - Éditoriaux">Nouvelles - Éditoriaux</option>
             <option value="Financement Participatif">Financement Participatif</option>
-          </select>
-        </div>
-
-        <div class="card mt-3 p-2">
-          <h6 class="fw-bold text-secondary mb-2">Carte interactive</h6>
-          <div id="miniMap" style="height: 250px; width: 100%; border-radius: 8px;"></div>
-        </div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="col-md-9">
-        <div class="card p-3">
-          <div class="d-flex justify-content-end mb-3 gap-2 flex-wrap">
-            <button id="btnGrille" class="btn btn-outline-primary active">Grille</button>
-            <button id="btnListe" class="btn btn-outline-primary">Liste</button>
-            <button id="btnCarte" class="btn btn-outline-primary">Carte</button>
-          </div>
-
-          <h5 id="categoryTitle" class="fw-bold text-primary">BALADOS</h5>
-
-          <div class="row" id="resultsContainer">
-            <!-- Les résultats seront affichés ici -->
-          </div>
-
-          <div id="mapContainer" style="height: 600px; display: none;"></div>
-        </div>
-      </div>
+        </select>
     </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="bg-danger text-white text-center p-3 mt-4">
-    <span>📌 Version 1.3</span>
-  </footer>
+    <!-- Filtre : Public cible -->
+    <div class="card p-3 mt-3">
+        <h5 class="fw-bold">Public cible</h5>
+        <select id="publicSelect" class="form-select">
+            <option value="Tous">Sélectionner</option>
+            <option value="Élèves">Élèves</option>
+            <option value="Enseignants">Enseignants</option>
+            <option value="Parents">Parents</option>
+            <option value="Administrateurs scolaires">Administrateurs scolaires</option>
+            <option value="Professionnels de l’éducation">Professionnels de l’éducation</option>
+            <option value="Grand public">Grand public</option>
+        </select>
+    </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="script.js"></script>
+    <!-- Filtre : Format -->
+    <div class="card p-3 mt-3">
+        <h5 class="fw-bold">Format</h5>
+        <select id="formatSelect" class="form-select">
+            <option value="Tous">Sélectionner</option>
+            <option value="Balado">Balado</option>
+            <option value="Vidéo">Vidéo</option>
+            <option value="Événement">Événement</option>
+            <option value="Ressources numériques">Ressources numériques</option>
+            <option value="Concours/Compétition">Concours/Compétition</option>
+            <option value="Formation">Formation</option>
+            <option value="Article/Éditorial">Article/Éditorial</option>
+        </select>
+    </div>
+
+    <!-- Filtre : Type d'acteur -->
+    <div class="card p-3 mt-3">
+        <h5 class="fw-bold">Type d'acteur</h5>
+        <select id="acteurSelect" class="form-select">
+            <option value="Tous">Sélectionner</option>
+            <option value="Organisations éducatives">Organisations éducatives</option>
+            <option value="Établissements scolaires">Établissements scolaires</option>
+            <option value="Associations et fédérations">Associations et fédérations</option>
+            <option value="Startups et incubateurs">Startups et incubateurs</option>
+            <option value="Médias et plateformes">Médias et plateformes</option>
+        </select>
+    </div>
+
+    <!-- Mini carte -->
+    <div class="card mt-3 p-2">
+        <h6 class="fw-bold text-secondary mb-2">Carte interactive</h6>
+        <div id="miniMap" style="height: 250px; width: 100%; border-radius: 8px;"></div>
+    </div>
+</div>
+
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-end mb-3 gap-2 flex-wrap">
+                        <button id="btnGrille" class="btn btn-outline-primary active">Grille</button>
+                        <button id="btnListe" class="btn btn-outline-primary">Liste</button>
+                        <button id="btnCarte" class="btn btn-outline-primary">Carte</button>
+                    </div>
+                    
+                    <h5 id="categoryTitle" class="fw-bold text-primary">BALADOS</h5>
+                    <div class="row" id="resultsContainer">
+                        <!-- Les résultats seront affichés ici -->
+                    </div>
+                    <!-- Conteneur pour la vue "carte" -->
+<div id="mapWrapper" style="position: relative; height: 600px; display: none;">
+    <!-- Message d'information fixé en haut de la carte -->
+    <div id="mapNote" class="alert">
+        Certaines organisations sont des ressources en ligne et ne sont pas affichées sur la carte.
+    </div>
+    <!-- Conteneur pour la carte -->
+    <div id="mapContainer" style="height: 100%;"></div>
+</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-danger text-white text-center p-3 mt-4">
+        <span>📌 Version 1.3</span>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+
 </body>
 </html>

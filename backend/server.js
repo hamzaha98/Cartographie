@@ -1,213 +1,255 @@
+// ✅ server.js complet — version adaptée aux tables entreprises_new, categories, entreprise_categories
+
 const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
+const mysql = require('mysql2/promise');
 const path = require('path');
 const fs = require('fs');
+const cors = require('cors');
+const dotenv = require('dotenv');
 const { initializeDatabase } = require('./init-db');
-require('dotenv').config();
+dotenv.config();
 
 const app = express();
-app.use(express.json());
 app.use(cors());
-
-// 📂 Fichiers statiques
+app.use(express.json());
+app.use(express.static('frontend'));
+app.use(express.static('public'));
+// Chemin de logos simplifié (sans sous-dossier par catégorie)
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
 app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
 
-// 📋 Logger d'actions (audit)
-const logPath = path.join(__dirname, '../logs/audit.log');
-
-function logAction(action, entreprise, user = "admin") {
-  console.log("📢 logAction appelée:", action, entreprise.nom);
-  const lines = [`[${new Date().toISOString()}] ${user} a effectué: ${action} sur "${entreprise.nom}" (ID: ${entreprise.id || 'nouveau'})`];
-  if (action === "Création") {
-    lines.push(`  ➕ Données: ${JSON.stringify(entreprise)}`);
-  }
-  const logEntry = lines.join('\n') + '\n';
-  fs.mkdirSync(path.dirname(logPath), { recursive: true });
-  fs.appendFileSync(logPath, logEntry);
-}
-
-// 🔐 Middleware d’authentification admin
-function checkAdminAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (authHeader === 'Bearer admin123') {
-    next();
-  } else {
-    res.status(401).json({ error: "Non autorisé" });
-  }
-}
-
-// 📌 Connexion à la base de données
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306
-}).promise();
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME
+});
 
-// 📌 GET - toutes les entreprises
-app.get('/entreprises', async (req, res) => {
+function logAction(action, details) {
+  const timestamp = new Date().toISOString();
+  const ligne = `[${timestamp}] ${action} : ${details}\n`;
+  fs.appendFile('admin-actions.log', ligne, err => {
+    if (err) console.error('Erreur de journalisation :', err);
+  });
+}
+
+// 🔍 Liste des catégories disponibles
+app.get('/categories', async (req, res) => {
   try {
-    const [results] = await pool.query('SELECT * FROM entreprises');
-    res.json(results);
+    const [rows] = await pool.query('SELECT * FROM categories ORDER BY nom ASC');
+    res.json(rows);
   } catch (error) {
-    console.error('Erreur SQL:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des entreprises.' });
+    console.error("Erreur lors de la récupération des catégories :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// 📌 Recherche par mot-clé
-app.get('/search', async (req, res) => {
-  const searchTerm = req.query.q;
-  if (!searchTerm) {
-    return res.status(400).json({ error: "Veuillez entrer un terme de recherche." });
-  }
-
+// 🔍 Liste des entreprises avec catégories (many-to-many)
+app.get('/entreprises', async (req, res) => {
   try {
-    const [results] = await pool.query(
-      `SELECT * FROM entreprises 
-       WHERE LOWER(nom) LIKE LOWER(?) 
-       OR LOWER(descriptif) LIKE LOWER(?) 
-       OR LOWER(mots_cles) LIKE LOWER(?)`,
-      [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
-    );
+    const [rows] = await pool.query(`
+      SELECT 
+        e.*, 
+        GROUP_CONCAT(c.nom SEPARATOR ', ') AS categories
+      FROM entreprises_new e
+      LEFT JOIN entreprise_categories ec ON e.id = ec.entreprise_id
+      LEFT JOIN categories c ON ec.categorie_id = c.id
+      GROUP BY e.id
+      ORDER BY e.nom ASC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des entreprises :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// 🔍 Recherche
+app.get('/search', async (req, res) => {
+  const terme = `%${req.query.q || ''}%`;
+  try {
+    const [results] = await pool.query(`
+      SELECT 
+        e.id, e.nom, e.logo, e.descriptif, e.lien_du_site, e.mots_cles, e.lieu, 
+        e.latitude, e.longitude, e.date_creation,
+        e.public_cible, e.format, e.type_acteur,
+        GROUP_CONCAT(c.nom SEPARATOR ', ') AS categorie
+      FROM entreprises_new e
+      LEFT JOIN entreprise_categories ec ON e.id = ec.entreprise_id
+      LEFT JOIN categories c ON ec.categorie_id = c.id
+      WHERE e.nom LIKE ? OR e.descriptif LIKE ? OR e.mots_cles LIKE ?
+      GROUP BY e.id
+    `, [terme, terme, terme]);
     res.json(results);
   } catch (error) {
-    console.error('Erreur SQL:', error);
+    console.error('Erreur SQL /search:', error);
     res.status(500).json({ error: 'Erreur lors de la recherche.' });
   }
 });
 
-// 📌 GET - entreprise par ID
+// 🔍 Détails d'une entreprise
 app.get('/entreprises/:id', async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   try {
-    const [results] = await pool.query('SELECT * FROM entreprises WHERE id = ?', [id]);
+    const [results] = await pool.query(`
+      SELECT 
+        e.*, 
+        GROUP_CONCAT(c.nom SEPARATOR ', ') AS categorie
+      FROM entreprises_new e
+      LEFT JOIN entreprise_categories ec ON e.id = ec.entreprise_id
+      LEFT JOIN categories c ON ec.categorie_id = c.id
+      WHERE e.id = ?
+      GROUP BY e.id
+    `, [id]);
     if (results.length === 0) {
-      return res.status(404).json({ error: "Entreprise non trouvée." });
+      return res.status(404).json({ error: 'Entreprise non trouvée' });
     }
     res.json(results[0]);
   } catch (error) {
-    console.error('Erreur SQL:', error);
-    res.status(500).json({ error: "Erreur lors de la récupération de l'entreprise." });
+    console.error('Erreur SQL /entreprises/:id:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// 📌 GET - API keys
-app.get('/config/api-key', (req, res) => {
-  res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
-});
-
-app.get('/maptiler-key', (req, res) => {
-  res.json({ key: process.env.MAPTILER_API_KEY });
-});
-
-// 📌 POST - créer une entreprise (auth + journalisation)
-app.post('/entreprises', checkAdminAuth, async (req, res) => {
-  const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
-
-  if (!nom) {
-    return res.status(400).json({ success: false, error: "Veuillez fournir un nom pour l'entreprise." });
-  }
-
+// ➕ Ajouter une entreprise (et ses catégories)
+app.post('/entreprises', async (req, res) => {
+  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, categories } = req.body;
+  
+  const connection = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      'INSERT INTO entreprises (nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu]
-    );
+    await connection.beginTransaction();
+    
+    // Insertion de l'entreprise
+    const [result] = await connection.query(`
+      INSERT INTO entreprises_new (nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur]);
 
-    const newEntreprise = {
-      id: result.insertId,
-      nom,
-      logo: `/logos/${categorie}/${logo}`,
-      descriptif,
-      lien_du_site,
-      categorie,
-      mots_cles,
-      lieu
-    };
+    const entrepriseId = result.insertId;
 
-    logAction("Création", newEntreprise);
-
-    res.setHeader('Content-Type', 'application/json');
-    res.status(201).json({
-      success: true,
-      message: "Entreprise ajoutée avec succès.",
-      entreprise: newEntreprise
-    });
-  } catch (error) {
-    console.error('Erreur SQL:', error);
-    res.status(500).json({ success: false, error: "Erreur lors de l'ajout de l'entreprise." });
-  }
-});
-
-// 📌 DELETE - supprimer une entreprise
-app.delete('/entreprises/:id', checkAdminAuth, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const [old] = await pool.query('SELECT nom FROM entreprises WHERE id = ?', [id]);
-    const [result] = await pool.query('DELETE FROM entreprises WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Entreprise non trouvée." });
+    // Association des catégories
+    if (Array.isArray(categories) && categories.length > 0) {
+      for (const nomCategorie of categories) {
+        const [cat] = await connection.query('SELECT id FROM categories WHERE nom = ?', [nomCategorie]);
+        if (cat.length) {
+          await connection.query('INSERT INTO entreprise_categories (entreprise_id, categorie_id) VALUES (?, ?)', [entrepriseId, cat[0].id]);
+        }
+      }
     }
 
-    if (old.length > 0) {
-      logAction("Suppression", { nom: old[0].nom, id });
-    }
-
-    res.json({ success: true, message: "Entreprise supprimée avec succès !" });
+    await connection.commit();
+    logAction('Ajout', nom);
+    res.json({ success: true });
   } catch (error) {
-    console.error('🔥 ERREUR SQL:', error);
-    res.status(500).json({ success: false, error: "Erreur lors de la suppression." });
+    await connection.rollback();
+    console.error('Erreur SQL POST /entreprises:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout.' });
+  } finally {
+    connection.release();
   }
 });
 
-// 📌 PUT - modifier une entreprise
-app.put('/entreprises/:id', checkAdminAuth, async (req, res) => {
-  const { id } = req.params;
-  const { nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu } = req.body;
-
-  if (!nom) {
-    return res.status(400).json({ success: false, error: "Le champ 'nom' est obligatoire." });
-  }
-
+// ✏️ Modifier une entreprise
+app.put('/entreprises/:id', async (req, res) => {
+  const id = req.params.id;
+  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, categories } = req.body;
+  
+  const connection = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `UPDATE entreprises 
-       SET nom = ?, logo = ?, descriptif = ?, lien_du_site = ?, categorie = ?, mots_cles = ?, lieu = ? 
-       WHERE id = ?`,
-      [nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu, id]
-    );
+    await connection.beginTransaction();
+    
+    // Mise à jour de l'entreprise
+    await connection.query(`
+      UPDATE entreprises_new SET nom=?, logo=?, descriptif=?, lien_du_site=?, mots_cles=?, lieu=?, latitude=?, longitude=?, date_creation=?, public_cible=?, format=?, type_acteur=?
+      WHERE id=?
+    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, id]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, error: "Entreprise non trouvée." });
+    // Mise à jour des catégories
+    await connection.query('DELETE FROM entreprise_categories WHERE entreprise_id = ?', [id]);
+    
+    if (Array.isArray(categories) && categories.length > 0) {
+      for (const nomCategorie of categories) {
+        const [cat] = await connection.query('SELECT id FROM categories WHERE nom = ?', [nomCategorie]);
+        if (cat.length) {
+          await connection.query('INSERT INTO entreprise_categories (entreprise_id, categorie_id) VALUES (?, ?)', [id, cat[0].id]);
+        }
+      }
     }
 
-    logAction("Modification", { id, nom, logo, descriptif, lien_du_site, categorie, mots_cles, lieu });
-
-    res.json({ success: true, message: "Entreprise modifiée avec succès !" });
+    await connection.commit();
+    logAction('Modification', nom);
+    res.json({ success: true });
   } catch (error) {
-    console.error('🔥 ERREUR SQL:', error);
-    res.status(500).json({ success: false, error: "Erreur lors de la modification." });
+    await connection.rollback();
+    console.error('Erreur SQL PUT /entreprises/:id:', error);
+    res.status(500).json({ error: 'Erreur lors de la modification.' });
+  } finally {
+    connection.release();
   }
 });
 
+// ❌ Supprimer une entreprise
+app.delete('/entreprises/:id', async (req, res) => {
+  const id = req.params.id;
+  
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    
+    // Supprimer d'abord les liens vers les catégories
+    await connection.query('DELETE FROM entreprise_categories WHERE entreprise_id = ?', [id]);
+    
+    // Puis supprimer l'entreprise
+    await connection.query('DELETE FROM entreprises_new WHERE id = ?', [id]);
+    
+    await connection.commit();
+    logAction('Suppression', `Entreprise ID ${id}`);
+    res.json({ success: true });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erreur SQL DELETE /entreprises/:id:', error);
+    res.status(500).json({ error: 'Erreur lors de la suppression.' });
+  } finally {
+    connection.release();
+  }
+});
+
+// // 🔐 Authentification simplifiée pour accès admin (version test)
+// app.post('/login', async (req, res) => {
+//   const { username, password } = req.body;
+//   try {
+//     const [results] = await pool.query('SELECT * FROM utilisateurs WHERE username = ? AND password = ?', [username, password]);
+//     if (results.length === 1) {
+//       res.json({ success: true, message: 'Connexion réussie' });
+//     } else {
+//       res.status(401).json({ success: false, message: 'Identifiants invalides' });
+//     }
+//   } catch (error) {
+//     console.error('Erreur SQL /login:', error);
+//     res.status(500).json({ error: 'Erreur de connexion' });
+//   }
+// });
+
+// // 🔑 Clés API exposées pour usage client (optionnel)
+// app.get('/config/api-key', (req, res) => {
+//   res.json({ apiKey: process.env.API_KEY || '' });
+// });
+
+// app.get('/config/maptiler-key', (req, res) => {
+//   res.json({ key: process.env.MAPTILER_KEY || '' });
+// });
+
+// 🧪 Test simple
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+initializeDatabase().then(() => {
 // 🚀 Lancer le serveur
-async function startServer() {
-  try {
-    await initializeDatabase();
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
-      console.log(`🚀 Interface admin   : http://localhost:${PORT}/frontend/admin/index.html`);
-    });
-  } catch (error) {
-    console.error('❌ Erreur au démarrage du serveur:', error);
-  }
-}
-
-startServer();
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Serveur en cours d'exécution sur http://localhost:${PORT}`);
+  console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
+  console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
+});
+});
