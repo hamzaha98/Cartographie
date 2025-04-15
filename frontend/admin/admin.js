@@ -113,10 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
             lien_du_site: document.getElementById("lien_du_site").value.trim(),
             mots_cles: document.getElementById("mots_cles").value.trim(),
             lieu: document.getElementById("lieu").value.trim(),
-            // Nouveaux champs
             latitude: parseFloat(document.getElementById("latitude").value) || 0,
             longitude: parseFloat(document.getElementById("longitude").value) || 0,
-            date_creation: document.getElementById("date_creation").value,
             public_cible: document.getElementById("public_cible").value,
             format: document.getElementById("format").value,
             type_acteur: document.getElementById("type_acteur").value,

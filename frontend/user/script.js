@@ -224,6 +224,16 @@ function extraireUniques(data, champ) {
 }
 
 function remplirSelect(selectElement, valeurs) {
+    // 🔁 Nettoyer les anciennes options
+    selectElement.innerHTML = '';
+
+    // ✅ Ajouter option par défaut
+    const optionParDefaut = document.createElement('option');
+    optionParDefaut.value = 'Tous';
+    optionParDefaut.textContent = 'Sélectionner';
+    selectElement.appendChild(optionParDefaut);
+
+    // ✅ Ajouter les valeurs uniques triées
     valeurs.forEach(val => {
         const option = document.createElement('option');
         option.value = val;

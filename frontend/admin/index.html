@@ -83,10 +83,7 @@
 
                 <!-- Informations supplémentaires -->
                 <div class="row mt-3">
-                    <div class="col-md-4">
-                        <label for="date_creation" class="form-label">Date de création:</label>
-                        <input type="date" class="form-control" id="date_creation">
-                    </div>
+
                     <div class="col-md-4">
                         <label for="public_cible" class="form-label">Public cible:</label>
                         <select id="public_cible" class="form-select">
@@ -96,6 +93,9 @@
                             <option value="Enseignants">Enseignants</option>
                             <option value="Élèves">Élèves</option>
                             <option value="Étudiants">Étudiants</option>
+                            <option value="Parents">Parents</option>
+                            <option value="Administrateurs scolaires">Administrateurs scolaires</option>
+                            <option value="Professionnels de l'éducation">Professionnels de l'éducation</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -106,12 +106,15 @@
                             <option value="En ligne">En ligne</option>
                             <option value="Présentiel">Présentiel</option>
                             <option value="Hybride">Hybride</option>
+                            <option value="Vidéo">Vidéo</option>
+                            <option value="Événement">Événement</option>
+                            <option value="Ressources numériques">Ressources numériques</option>
+                            <option value="Concours/Compétition">Concours/Compétition</option>
+                            <option value="Formation">Formation</option>
+                            <option value="Article/Éditorial">Article/Éditorial</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="row mt-3">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <label for="type_acteur" class="form-label">Type d'acteur:</label>
                         <select id="type_acteur" class="form-select">
                             <option value="">Sélectionner</option>
@@ -119,9 +122,13 @@
                             <option value="Organisations éducatives">Organisations éducatives</option>
                             <option value="Évènements">Évènements</option>
                             <option value="Formations">Formations</option>
+                            <option value="Établissements scolaires">Établissements scolaires</option>
+                            <option value="Associations et fédérations">Associations et fédérations</option>
+                            <option value="Startups et incubateurs">Startups et incubateurs</option>
                         </select>
                     </div>
                 </div>
+
 
                 <!-- Catégories (checkboxes) -->
                 <div class="row mt-3">
