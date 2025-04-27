@@ -14,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('frontend'));
 app.use(express.static('public'));
+
 // Chemin de logos simplifié (sans sous-dossier par catégorie)
 app.use('/logos', express.static(path.join(__dirname, '../logos')));
 app.use('/frontend', express.static(path.join(__dirname, '../frontend')));
@@ -29,7 +30,7 @@ const pool = mysql.createPool({
 function logAction(action, details) {
   const timestamp = new Date().toISOString();
   const ligne = `[${timestamp}] ${action} : ${details}\n`;
-  fs.appendFile('admin-actions.log', ligne, err => {
+  fs.appendFile(path.join(__dirname, 'logs', 'admin-actions.log'), ligne, err => {
     if (err) console.error('Erreur de journalisation :', err);
   });
 }
@@ -114,17 +115,21 @@ app.get('/entreprises/:id', async (req, res) => {
 
 // ➕ Ajouter une entreprise (et ses catégories)
 app.post('/entreprises', async (req, res) => {
-  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, categories } = req.body;
+  // On ne récupère plus date_creation du client
+  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, public_cible, format, type_acteur, categories } = req.body;
+  
+  // On génère la date de création côté serveur
+  const createdAt = new Date().toISOString();
   
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     
-    // Insertion de l'entreprise
+    // Insertion de l'entreprise avec date_creation générée automatiquement
     const [result] = await connection.query(`
       INSERT INTO entreprises_new (nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur]);
+    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, createdAt, public_cible, format, type_acteur]);
 
     const entrepriseId = result.insertId;
 
@@ -153,17 +158,18 @@ app.post('/entreprises', async (req, res) => {
 // ✏️ Modifier une entreprise
 app.put('/entreprises/:id', async (req, res) => {
   const id = req.params.id;
-  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, categories } = req.body;
+  // On ne récupère plus date_creation du client pour ne pas écraser la date initiale
+  const { nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, public_cible, format, type_acteur, categories } = req.body;
   
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     
-    // Mise à jour de l'entreprise
+    // Mise à jour de l'entreprise (sans modification de date_creation)
     await connection.query(`
-      UPDATE entreprises_new SET nom=?, logo=?, descriptif=?, lien_du_site=?, mots_cles=?, lieu=?, latitude=?, longitude=?, date_creation=?, public_cible=?, format=?, type_acteur=?
+      UPDATE entreprises_new SET nom=?, logo=?, descriptif=?, lien_du_site=?, mots_cles=?, lieu=?, latitude=?, longitude=?, public_cible=?, format=?, type_acteur=?
       WHERE id=?
-    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, date_creation, public_cible, format, type_acteur, id]);
+    `, [nom, logo, descriptif, lien_du_site, mots_cles, lieu, latitude, longitude, public_cible, format, type_acteur, id]);
 
     // Mise à jour des catégories
     await connection.query('DELETE FROM entreprise_categories WHERE entreprise_id = ?', [id]);
@@ -215,41 +221,17 @@ app.delete('/entreprises/:id', async (req, res) => {
   }
 });
 
-// // 🔐 Authentification simplifiée pour accès admin (version test)
-// app.post('/login', async (req, res) => {
-//   const { username, password } = req.body;
-//   try {
-//     const [results] = await pool.query('SELECT * FROM utilisateurs WHERE username = ? AND password = ?', [username, password]);
-//     if (results.length === 1) {
-//       res.json({ success: true, message: 'Connexion réussie' });
-//     } else {
-//       res.status(401).json({ success: false, message: 'Identifiants invalides' });
-//     }
-//   } catch (error) {
-//     console.error('Erreur SQL /login:', error);
-//     res.status(500).json({ error: 'Erreur de connexion' });
-//   }
-// });
-
-// // 🔑 Clés API exposées pour usage client (optionnel)
-// app.get('/config/api-key', (req, res) => {
-//   res.json({ apiKey: process.env.API_KEY || '' });
-// });
-
-// app.get('/config/maptiler-key', (req, res) => {
-//   res.json({ key: process.env.MAPTILER_KEY || '' });
-// });
-
 // 🧪 Test simple
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
+
 initializeDatabase().then(() => {
-// 🚀 Lancer le serveur
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Serveur en cours d'exécution sur http://localhost:${PORT}`);
-  console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
-  console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
-});
+  // 🚀 Lancer le serveur
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`✅ Serveur en cours d'exécution sur http://localhost:${PORT}`);
+    console.log(`🚀 Interface publique : http://localhost:${PORT}/frontend/user/index.html`);
+    console.log(`🚀 Interface admin : http://localhost:${PORT}/frontend/admin/index.html`);
+  });
 });
